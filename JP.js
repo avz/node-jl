@@ -6,7 +6,7 @@ var ShellJoin = require('./shell/Join.js').Join;
 var ShellSort = require('./shell/Sort.js').Sort;
 
 function JP() {
-
+	this.objectStreamHightWarerMark = 1;
 };
 
 JP.prototype._wrapStream = function(stream) {
@@ -14,7 +14,7 @@ JP.prototype._wrapStream = function(stream) {
 };
 
 JP.prototype.map = function(cb) {
-	var transform = new (require('stream').Transform)({objectMode: true});
+	var transform = new (require('stream').Transform)({objectMode: true, highWaterMark: this.objectStreamHightWarerMark});
 
 	transform._transform = function(items, encoding, callback) {
 		var out = [];
@@ -32,7 +32,7 @@ JP.prototype.map = function(cb) {
 };
 
 JP.prototype.filter = function(cb) {
-	var transform = new (require('stream').Transform)({objectMode: true});
+	var transform = new (require('stream').Transform)({objectMode: true, highWaterMark: this.objectStreamHightWarerMark});
 
 	transform._transform = function(items, encoding, callback) {
 		var out = [];
@@ -57,7 +57,7 @@ JP.prototype.splitLines = function(ending) {
 
 	var tail = '';
 
-	var transform = new (require('stream').Transform)({objectMode: true, highWaterMark: 100});
+	var transform = new (require('stream').Transform)({objectMode: true, highWaterMark: this.objectStreamHightWarerMark});
 
 	transform._transform = function(buf, encoding, callback) {
 		var lines = buf.toString().split(ending);
@@ -98,7 +98,7 @@ JP.prototype.joinLines = function(ending) {
 	if(ending === undefined)
 		ending = '\n';
 
-	var transform = new (require('stream').Transform)({objectMode: true, highWaterMark: 100});
+	var transform = new (require('stream').Transform)({objectMode: true, highWaterMark: this.objectStreamHightWarerMark});
 	transform._transform = function(lines, encoding, callback) {
 		if(lines.length)
 			this.push(lines.join('\n') + '\n');

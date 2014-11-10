@@ -1,3 +1,4 @@
 #!/bin/sh
 
-sort "$@" | cut -f 2-
+cat
+#sort "$@" | cut -f 2-

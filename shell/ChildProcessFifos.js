@@ -1,7 +1,6 @@
 var os = require('os');
 var fs = require('fs');
 var crypto = require('crypto');
-var mkfifoSync = require('mkfifo').mkfifoSync;
 
 function ChildProcessFifos(streams, command, args, options) {
 	this.tmpDir = options.tmpDir || os.tmpdir();
@@ -12,6 +11,8 @@ function ChildProcessFifos(streams, command, args, options) {
 ChildProcessFifos.sequenceNumber = 0;
 
 ChildProcessFifos.prototype._runFifos = function(streams, cmd, args, options) {
+	var mkfifoSync = require('mkfifo').mkfifoSync;
+
 	options.stdio = [
 		'ignore',
 		options.outputStream || 'pipe',

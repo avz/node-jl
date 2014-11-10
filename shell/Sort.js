@@ -20,13 +20,14 @@ function Sort(streams, options) {
 		'-r': !!options.reverse,
 		'-s': !!options.stable,
 		'-m': !!options.merge,
+		'-i': !!options.ignoreCase,
 		'-R': !!options.sortByHash,
 		'-T': options.tmpDir,
 		'-S': options.bufferSize ? options.bufferSize + 'b' : null,
 		'-t': options.separator,
 		'-k': options.key,
 		'--parallel': options.threads,
-		'--compress-program': options.compress
+//		'--compress-program': options.compress
 	}
 
 	var args = [];

@@ -6,14 +6,12 @@ var jp = new JP;
 if(!process.argv[2])
 	process.exit(255);
 
-var f = new ArgFunction(process.argv[2], ['r'], 'r', {suffix: ';\n return r;'});
+var f = new ArgFunction(process.argv[2], ['r'], 'r');
 
 process.stdin.pipe(jp.splitLines())
-	.pipe(jp.map(function(line) {
+	.pipe(jp.filter(function(line) {
 		var o = JSON.parse(' ' + line);
-		var result = f(o);
-
-		return JSON.stringify(result);
+		return f(o);
 	}))
 	.pipe(jp.joinLines())
 	.pipe(process.stdout)
