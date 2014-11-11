@@ -9,6 +9,9 @@
 function ArgFunction(string, args, defaultVariableName, options) {
 	options = options || {};
 
+	if(options.ignoreExceptions === undefined)
+		options.ignoreExceptions = true;
+
 	var m = string.match(/\s*\{(.*)\}\s*/);
 	if(m) {
 		// просто вариант - юзер указал весь код функции целиком
@@ -29,6 +32,10 @@ function ArgFunction(string, args, defaultVariableName, options) {
 	}
 
 	src += string;
+
+	if(options.ignoreExceptions) {
+		src = 'try { ' + src + ' } catch(e) { }';
+	}
 
 	return new Function(args.join(','), src);
 };

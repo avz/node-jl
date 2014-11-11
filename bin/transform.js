@@ -1,5 +1,5 @@
 var JP = require('../JP.js').JP;
-var ArgFunction = require('../shell/ArgFunction.js').ArgFunction;
+var ArgFunction = require('../shell/wrapper/ArgFunction.js').ArgFunction;
 
 var jp = new JP;
 

@@ -2,19 +2,36 @@ var inherits = require('util').inherits;
 var Transform = require('stream').Transform;
 var Readable = require('stream').Readable;
 
-var ShellJoin = require('./shell/Join.js').Join;
-var ShellSort = require('./shell/Sort.js').Sort;
-
 function JP() {
 	this.objectStreamHightWarerMark = 1;
 };
+
+JP.prototype._createObjectsTransform = function(type) {
+	var self = this;
+
+	var t = new (require('stream').Transform)({
+		objectMode: true,
+		highWaterMark: self.objectStreamHightWarerMark
+	});
+
+	t.elementsType = type;
+
+	t.on('pipe', function(src) {
+		if(!this.elementsType)
+			this.elementsType = src.elementsType;
+	});
+
+	return t;
+}
 
 JP.prototype._wrapStream = function(stream) {
 	return stream;
 };
 
-JP.prototype.map = function(cb) {
-	var transform = new (require('stream').Transform)({objectMode: true, highWaterMark: this.objectStreamHightWarerMark});
+JP.prototype.map = function(cb, options) {
+	options = options || {};
+
+	var transform = this._createObjectsTransform(options.resultType);
 
 	transform._transform = function(items, encoding, callback) {
 		var out = [];
@@ -32,7 +49,7 @@ JP.prototype.map = function(cb) {
 };
 
 JP.prototype.filter = function(cb) {
-	var transform = new (require('stream').Transform)({objectMode: true, highWaterMark: this.objectStreamHightWarerMark});
+	var transform = this._createObjectsTransform();
 
 	transform._transform = function(items, encoding, callback) {
 		var out = [];
@@ -57,7 +74,7 @@ JP.prototype.splitLines = function(ending) {
 
 	var tail = '';
 
-	var transform = new (require('stream').Transform)({objectMode: true, highWaterMark: this.objectStreamHightWarerMark});
+	var transform = this._createObjectsTransform('line');
 
 	transform._transform = function(buf, encoding, callback) {
 		var lines = buf.toString().split(ending);
@@ -98,7 +115,8 @@ JP.prototype.joinLines = function(ending) {
 	if(ending === undefined)
 		ending = '\n';
 
-	var transform = new (require('stream').Transform)({objectMode: true, highWaterMark: this.objectStreamHightWarerMark});
+	var transform = this._createObjectsTransform('raw');
+
 	transform._transform = function(lines, encoding, callback) {
 		if(lines.length)
 			this.push(lines.join('\n') + '\n');
@@ -107,6 +125,17 @@ JP.prototype.joinLines = function(ending) {
 	};
 
 	return this._wrapStream(transform);
+};
+
+JP.prototype.jsonStringify = function() {
+	return this.map(JSON.stringify, {resultType: 'line'});
+};
+
+JP.prototype.jsonParse = function() {
+	return this.map(function(line) {
+		/* Пробел - хак для ускорения парсинга жсона */
+		return JSON.parse(' ' + line);
+	}, {resultType: 'object'});
 };
 
 exports.JP = JP;
