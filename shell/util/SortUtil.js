@@ -60,12 +60,34 @@ SortUtil.prototype.run = function() {
 	 */
 	var convertFromLines = function(stream) {
 		var exportKey = function(line) {
-			var keyString;
 			var obj = JSON.parse(' ' + line);
 
 			var keyString = keyStringGenerator(obj);
 
 			return keyString + separator + line;
+		};
+
+		return stream.pipe(jp.map(exportKey));
+	};
+
+	/**
+	 * Если входной поток поделен на объекты
+	 * @param {type} stream
+	 * @returns {unresolved}
+	 */
+	var convertFromObjects = function(stream) {
+		var exportKey = function(obj) {
+			var keyString = keyStringGenerator(obj);
+
+			if(stream.constElements) {
+				if(obj.___jp_originalJsonLine)
+					return keyString + separator + obj.___jp_originalJsonLine;
+			} else {
+				if(obj.___jp_originalJsonLine)
+					delete obj.___jp_originalJsonLine;
+			}
+
+			return keyString + separator + JSON.stringify(obj);
 		};
 
 		return stream.pipe(jp.map(exportKey));
@@ -78,6 +100,8 @@ SortUtil.prototype.run = function() {
 
 		if(stream.elementsType === 'line')
 			stream = convertFromLines(stream);
+		else if(stream.elementsType === 'object')
+			stream = convertFromObjects(stream);
 		else
 			stream = convertFromRaw(stream);
 
@@ -90,7 +114,7 @@ SortUtil.prototype.run = function() {
 	sortOptions.key = '1,1';
 	sortOptions.path = __dirname + '/../wrapper/helpers/sort.sh';
 
-	if(this.outIsStdout()) {
+	if(this.output === process.stdout) {
 		sortOptions.outputStream = process.stdout;
 		new (require('../wrapper/Sort.js').Sort)(streams, sortOptions);
 	} else {
@@ -98,5 +122,4 @@ SortUtil.prototype.run = function() {
 	}
 };
 
-var s = new SortUtil();
-s.runFromShell();
+exports.SortUtil = SortUtil;

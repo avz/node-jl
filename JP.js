@@ -6,7 +6,7 @@ function JP() {
 	this.objectStreamHightWarerMark = 1;
 };
 
-JP.prototype._createObjectsTransform = function(type) {
+JP.prototype._createObjectsTransform = function(type, constElements) {
 	var self = this;
 
 	var t = new (require('stream').Transform)({
@@ -15,10 +15,14 @@ JP.prototype._createObjectsTransform = function(type) {
 	});
 
 	t.elementsType = type;
+	t.constElements = constElements;
 
 	t.on('pipe', function(src) {
 		if(!this.elementsType)
 			this.elementsType = src.elementsType;
+
+		if(this.constElements && src.constElements === false)
+			this.constElements = src.constElements;
 	});
 
 	return t;
@@ -30,14 +34,16 @@ JP.prototype._wrapStream = function(stream) {
 
 JP.prototype.map = function(cb, options) {
 	options = options || {};
+	if(options.constElements === undefined)
+		options.constElements = false;
 
-	var transform = this._createObjectsTransform(options.resultType);
+	var transform = this._createObjectsTransform(options.resultType, options.constElements);
 
 	transform._transform = function(items, encoding, callback) {
 		var out = [];
 
 		for(var i = 0; i < items.length; i++)
-			out.push(cb(items[i]));
+			out.push(cb.call(this, items[i]));
 
 		if(items.length)
 			this.push(out);
@@ -49,7 +55,7 @@ JP.prototype.map = function(cb, options) {
 };
 
 JP.prototype.filter = function(cb) {
-	var transform = this._createObjectsTransform();
+	var transform = this._createObjectsTransform(undefined, true);
 
 	transform._transform = function(items, encoding, callback) {
 		var out = [];
@@ -74,7 +80,7 @@ JP.prototype.splitLines = function(ending) {
 
 	var tail = '';
 
-	var transform = this._createObjectsTransform('line');
+	var transform = this._createObjectsTransform('line', true);
 
 	transform._transform = function(buf, encoding, callback) {
 		var lines = buf.toString().split(ending);
@@ -115,7 +121,7 @@ JP.prototype.joinLines = function(ending) {
 	if(ending === undefined)
 		ending = '\n';
 
-	var transform = this._createObjectsTransform('raw');
+	var transform = this._createObjectsTransform('raw', true);
 
 	transform._transform = function(lines, encoding, callback) {
 		if(lines.length)
@@ -128,14 +134,35 @@ JP.prototype.joinLines = function(ending) {
 };
 
 JP.prototype.jsonStringify = function() {
-	return this.map(JSON.stringify, {resultType: 'line'});
+	return this.map(
+		function(item) {
+			if(this.constElements) {
+				if(item && item.___jp_originalJsonLine !== undefined)
+					return item.___jp_originalJsonLine;
+			} else {
+				if(item && item.___jp_originalJsonLine !== undefined)
+					delete item.___jp_originalJsonLine;
+			}
+
+			return JSON.stringify(item);
+		},
+		{
+			resultType: 'line',
+			constElements: true
+		}
+	);
 };
 
 JP.prototype.jsonParse = function() {
 	return this.map(function(line) {
 		/* Пробел - хак для ускорения парсинга жсона */
-		return JSON.parse(' ' + line);
-	}, {resultType: 'object'});
+		var l = ' ' + line;
+		var o = JSON.parse(l);
+
+		o.___jp_originalJsonLine = line;
+
+		return o;
+	}, {resultType: 'object', constElements: true});
 };
 
 exports.JP = JP;
