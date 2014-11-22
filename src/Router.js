@@ -16,6 +16,8 @@ Router.runFromShell = function(command, argv) {
 Router.needUtil = function(command) {
 	var routes = {
 		sort: require('./util/SortUtil.js').SortUtil,
+		count: require('./util/CountUtil.js').CountUtil,
+		sum: require('./util/SumUtil.js').SumUtil,
 		filter: require('./util/FilterUtil.js').FilterUtil,
 		grep: require('./util/FilterUtil.js').FilterUtil,
 		transform: require('./util/TransformUtil.js').TransformUtil,
