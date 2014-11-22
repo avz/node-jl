@@ -8,7 +8,7 @@ function SortUtil() {
 		['T', 'tmp-dir=DIR', 'use DIR for temporaries'],
 		['S', 'buffer-size=SIZE', 'use SIZE for main memory buffer (bytes)'],
 		['k', 'key=KEYDEF', 'sort key definition']
-	]);
+	], '-k KEYDEF');
 };
 
 require('util').inherits(SortUtil, require('../Util.js').Util);

@@ -1,7 +1,7 @@
 function FilterUtil() {
 	FilterUtil.super_.call(this, [
 		['v', 'invert-match', 'invert the sense of matching, to select non-matching lines']
-	]);
+	], 'FILTER');
 };
 
 require('util').inherits(FilterUtil, require('../Util.js').Util);

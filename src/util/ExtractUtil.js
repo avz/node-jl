@@ -1,6 +1,6 @@
 function ExtractUtil() {
 	ExtractUtil.super_.call(this, [
-	]);
+	], 'KEYDEF');
 };
 
 require('util').inherits(ExtractUtil, require('../Util.js').Util);

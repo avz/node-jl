@@ -2,10 +2,17 @@ var ArgFunction = require('./ArgFunction.js').ArgFunction;
 var JP = require('./JP.js').JP;
 var Router = require('./Router.js').Router;
 
-function Util(args) {
+function Util(args, argString) {
 	args.push(['h', 'help', 'show this help']);
 
 	this.getopt = require('node-getopt').create(args);
+	var title = require('path').basename(process.argv[1]);
+
+	this.getopt.setHelp(
+		"Usage: " + title + " [OPTIONS]" + (argString ? ' ' + argString : '') + " [FILE...]\n"
+		+ "[[OPTIONS]]"
+		+ "\nSee also: https://github.com/avz/node-jl/"
+	);
 
 	this.getopt.bindHelp();
 

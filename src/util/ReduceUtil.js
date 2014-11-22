@@ -5,7 +5,7 @@ function ReduceUtil() {
 		['u', 'update=FUNC', 'update callback'],
 		['r', 'result=FUNC', 'result callback'],
 //		['v', 'value=FUNC', 'value callback (for internal usage)'],
-	]);
+	], '-i FUNC -u FUNC -r FUNC');
 };
 
 require('util').inherits(ReduceUtil, require('../Util.js').Util);

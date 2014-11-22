@@ -1,6 +1,6 @@
 function TransformUtil() {
 	TransformUtil.super_.call(this, [
-	]);
+	], 'FUNC');
 };
 
 require('util').inherits(TransformUtil, require('../Util.js').Util);
