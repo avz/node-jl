@@ -7,8 +7,7 @@ function SortUtil() {
 		['u', 'unique', 'unique'],
 		['T', 'tmp-dir=DIR', 'use DIR for temporaries'],
 		['S', 'buffer-size=SIZE', 'use SIZE for main memory buffer (bytes)'],
-		['k', 'key=KEYDEF', 'sort key definition']
-	], '-k KEYDEF');
+	], 'KEYDEF');
 };
 
 require('util').inherits(SortUtil, require('../Util.js').Util);
@@ -27,7 +26,9 @@ SortUtil.prototype.run = function() {
 		bufferSize: this.getOption('buffer-size')
 	};
 
-	var keyGenerator = this.needOptionFunction('key');
+	var keyGenerator = this.needArgumentFunction(0);
+	this.shiftArguments();
+
 	var keyStringGenerator;
 
 	if(sortOptions.numeric) {
