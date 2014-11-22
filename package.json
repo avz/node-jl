@@ -13,6 +13,11 @@
 	"license": "BSD",
 	"author": "Artem Zaytsev <arepo@nologin.ru>",
 	"main": "./main.js",
+
+	"directories": {
+		"bin": "./bin"
+	},
+
 	"engines": {
 		"node": ">=0.10"
 	},
