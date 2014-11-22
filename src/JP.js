@@ -6,6 +6,16 @@ function JP() {
 	this.objectStreamHightWarerMark = 1;
 };
 
+JP.Error = function(message) {
+	this.message = message;
+};
+
+JP.Error.JsonParsingError = function(json, exception) {
+	JP.Error.call(this, 'Unable to parse JSON: ' + json);
+};
+
+require('util').inherits(JP.Error.JsonParsingError, JP.Error);
+
 JP.prototype._createObjectsTransform = function(type, constElements, options) {
 	var self = this;
 
@@ -49,8 +59,17 @@ JP.prototype.map = function(cb, options) {
 	transform._transform = function(items, encoding, callback) {
 		var out = [];
 
-		for(var i = 0; i < items.length; i++)
-			out.push(cb.call(this, items[i]));
+		for(var i = 0; i < items.length; i++) {
+			try {
+				out.push(cb.call(this, items[i]));
+			} catch(e) {
+				if(e instanceof JP.Error) {
+					console.error('Error: ' + e.message);
+				} else {
+					throw e;
+				}
+			}
+		}
 
 		if(items.length)
 			this.push(out);
@@ -219,7 +238,12 @@ JP.prototype.jsonParse = function() {
 	return this.map(function(line) {
 		/* Пробел - хак для ускорения парсинга жсона */
 		var l = ' ' + line;
-		var o = JSON.parse(l);
+
+		try {
+			var o = JSON.parse(l);
+		} catch(e) {
+			throw new (JP.Error.JsonParsingError)(line.replace(/^\s+|\s+$/g, '', e));
+		}
 
 		o.___jp_originalJsonLine = line;
 
