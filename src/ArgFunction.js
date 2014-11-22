@@ -12,7 +12,7 @@ function ArgFunction(string, args, defaultVariableName, options) {
 	if(options.ignoreExceptions === undefined)
 		options.ignoreExceptions = true;
 
-	var m = string.match(/\s*\{(.*)\}\s*/);
+	var m = string.match(/^\s*\{([\s\S]*)\}\s*$/);
 	if(m) {
 		// просто вариант - юзер указал весь код функции целиком
 		return new Function(args.join(','), m[1] + (options.suffix || ''));
