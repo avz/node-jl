@@ -6,13 +6,20 @@ function JP() {
 	this.objectStreamHightWarerMark = 1;
 };
 
-JP.prototype._createObjectsTransform = function(type, constElements) {
+JP.prototype._createObjectsTransform = function(type, constElements, options) {
 	var self = this;
 
-	var t = new (require('stream').Transform)({
+	var to = {
 		objectMode: true,
 		highWaterMark: self.objectStreamHightWarerMark
-	});
+	};
+
+	if(options) {
+		for(var k in options)
+			to[k] = options[k];
+	}
+
+	var t = new (require('stream').Transform)(to);
 
 	t.elementsType = type;
 	t.constElements = constElements;
@@ -133,6 +140,16 @@ JP.prototype.joinLines = function(ending) {
 	return this._wrapStream(transform);
 };
 
+JP.prototype.transformRawToObject = function(onData, onEnd, options) {
+	var transform = this._createObjectsTransform('object', true, options);
+
+	transform._transform = onData;
+	if(onEnd)
+		transform._flush = onEnd;
+
+	return transform;
+};
+
 JP.prototype.jsonStringify = function() {
 	return this.map(
 		function(item) {
@@ -151,6 +168,51 @@ JP.prototype.jsonStringify = function() {
 			constElements: true
 		}
 	);
+};
+
+/**
+ * На входе поток айтемов, на выходе поток массивов айтемов до n элементов
+ * @param {number} chunkSize максимальный размер чанка
+ * @returns {undefined}
+ */
+JP.prototype.toChunks = function(chunkSize) {
+	var transform = this._createObjectsTransform('object', true);
+
+	var chunk = [];
+
+	var flusher = null;
+
+	var flush = function() {
+		if(flusher)
+			clearImmediate(flusher);
+
+		if(!chunk.length)
+			return;
+
+		transform.push(chunk);
+		chunk = [];
+	};
+
+	var touchScheduler = function() {
+		if(!flusher)
+			flusher = setImmediate(flush);
+	};
+
+	transform._transform = function(item, encoding, callback) {
+		chunk.push(item);
+
+		if(chunk.length > chunkSize) {
+			flush();
+			setImmediate(callback);
+		} else {
+			touchScheduler();
+			callback();
+		}
+	};
+
+	transform._flush = flush;
+
+	return transform;
 };
 
 JP.prototype.jsonParse = function() {

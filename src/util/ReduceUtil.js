@@ -1,0 +1,89 @@
+function ReduceUtil() {
+	ReduceUtil.super_.call(this, [
+		['k', 'key=KEYDEF', 'group key'],
+		['i', 'init=FUNC', 'init callback'],
+		['u', 'update=FUNC', 'update callback'],
+		['r', 'result=FUNC', 'result callback'],
+//		['v', 'value=FUNC', 'value callback (for internal usage)'],
+	]);
+};
+
+require('util').inherits(ReduceUtil, require('../Util.js').Util);
+
+ReduceUtil.prototype.run = function() {
+	var tr = this.jp._createObjectsTransform('object', false);
+
+	var getGroupKey = this.getOptionFunction('key');
+
+	var init = this.needOptionFunction('init');
+	var update = this.needOptionFunction('update', ['r', 'value']);
+	var result = this.needOptionFunction('result');
+
+	var valueCb = null;
+	/* эта штука ставится только из sum/count и прочих агрегатов, наботающих на базе reduce */
+	if(this.getOption('get-value-from-args0')) {
+		valueCb = this.needArgumentFunction(0);
+		this.shiftArguments();
+	}
+
+	var inputStream = this.getConcatenatedInputObjectsStream();
+
+	var group = null;
+
+	var flushGroup = function() {
+		if(group) {
+			tr.push([{
+				key: group.key,
+				value: result.call(group)
+			}]);
+		}
+	};
+
+	if(getGroupKey) {
+		tr._transform = function(chunk, encoding, callback) {
+			for(var i = 0; i < chunk.length; i++) {
+				var item = chunk[i];
+
+				var groupKey = getGroupKey(item);
+
+				if(group) {
+					if(group.key !== groupKey) {
+						flushGroup();
+						group = null;
+					}
+				}
+
+				if(!group) {
+					group = {
+						key: groupKey
+					};
+
+					init.call(group);
+				}
+
+				update.call(group, item, valueCb);
+			}
+
+			callback();
+		};
+	} else {
+		group = {};
+		init.call(group);
+
+		tr._transform = function(chunk, encoding, callback) {
+			for(var i = 0; i < chunk.length; i++) {
+				update.call(group, chunk[i], valueCb);
+			}
+			callback();
+		};
+	}
+
+	tr._flush = function(callback) {
+		flushGroup();
+		callback();
+	};
+
+	return inputStream.pipe(tr);
+};
+
+exports.ReduceUtil = ReduceUtil;

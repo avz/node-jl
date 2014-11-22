@@ -1,0 +1,17 @@
+#!/usr/bin/env node
+
+var u = require('../src/Router.js').Router.needUtil('reduce');
+
+u.overrideOption('init', function() {
+	this.count = 0;
+});
+
+u.overrideOption('update', function() {
+	this.count++;
+});
+
+u.overrideOption('result', function() {
+	return this.count;
+});
+
+u.runFromShell(process.argv);

@@ -27,11 +27,13 @@ function ArgFunction(string, args, defaultVariableName, options) {
 
 	if(string[0] === '[') {
 		// не делаем ничего
+		src += string;
 	} else {
-		src += '.';
+		if(string !== '') {
+			src += '.';
+			src += string;
+		}
 	}
-
-	src += string;
 
 	if(options.ignoreExceptions) {
 		src = 'try { ' + src + ' } catch(e) { }';

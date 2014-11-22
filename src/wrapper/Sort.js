@@ -108,7 +108,7 @@ Sort.prototype._runSimple = function(stream, cmd, args, options) {
 		process.stderr
 	];
 
-	console.error('simple', cmd, args);
+//	console.error('simple', cmd, args);
 	var p = require('child_process').spawn(
 		cmd,
 		args,

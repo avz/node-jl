@@ -62,7 +62,7 @@ ChildProcessFifos.prototype._runFifos = function(streams, cmd, args, options) {
 			fullArgs.push(p);
 		}
 
-		console.error(cmd, fullArgs);
+//		console.error(cmd, fullArgs);
 
 		proc = require('child_process').spawn(
 			cmd,

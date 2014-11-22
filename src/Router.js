@@ -2,10 +2,15 @@ function Router() {
 
 };
 
-Router.runFromShell = function(command) {
+Router.runFromShell = function(command, argv) {
+	if(!argv)
+		argv = process.argv;
+
 	var u = Router.needUtil(command);
 
-	u.runFromShell();
+	u.runFromShell(argv);
+
+	return u;
 };
 
 Router.needUtil = function(command) {
@@ -13,10 +18,13 @@ Router.needUtil = function(command) {
 		sort: require('./util/SortUtil.js').SortUtil,
 		filter: require('./util/FilterUtil.js').FilterUtil,
 		grep: require('./util/FilterUtil.js').FilterUtil,
-		transform: require('./util/TransformUtil.js').TransformUtil
+		transform: require('./util/TransformUtil.js').TransformUtil,
+		reduce: require('./util/ReduceUtil.js').ReduceUtil,
+		extract: require('./util/ExtractUtil.js').ExtractUtil,
+		'from-csv': require('./util/FromCsvUtil.js').FromCsvUtil
 	};
 
-	var r = command.replace(/^jp-/, '');
+	var r = command.replace(/^jl-/, '');
 
 	var ctor = routes[r];
 

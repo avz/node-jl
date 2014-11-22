@@ -30,9 +30,7 @@ function Join(leftStream, rightStream, separator, leftColumn, rightColumn, optio
 		}
 	}
 
-	var p;
-
-	p = this._runFifos(
+	var p = this._runFifos(
 		[leftStream, rightStream],
 		cmd,
 		args,

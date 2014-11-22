@@ -1,5 +1,5 @@
 var ArgFunction = require('./ArgFunction.js').ArgFunction;
-var JP = require('../JP.js').JP;
+var JP = require('./JP.js').JP;
 var Router = require('./Router.js').Router;
 
 function Util(args) {
@@ -12,6 +12,8 @@ function Util(args) {
 	this.options = {};
 	this.arguments = [];
 
+	this.optionsOverride = {};
+
 	this.stdin = null;
 	this.stdout = null;
 
@@ -21,55 +23,90 @@ function Util(args) {
 Util.error = {};
 
 Util.error.NeedArgument = function(opt) {
-	return Error('need argument: -' + opt);
+	this.message = 'need argument: -' + opt;
 };
 
 Util.error.NotEnoughArguments = function(num) {
-	return Error('not enough arguments: ' + (num + 1));
+	this.message = 'not enough arguments: ' + (num + 1);
 };
 
-Util.prototype.runFromShell = function() {
-	var args = process.argv.slice(2);
+Util.prototype.runFromShell = function(argv) {
+	var args = argv.slice(2);
+
+	process.stdout.on('error', function(e) {
+		if(e.errno === 'EPIPE')
+			process.exit();
+
+		throw e;
+	});
 
 	this.runAsPipe(process.stdin, process.stdout, args);
 };
 
 Util.prototype.runAsPipe = function(stdin, stdout, args) {
-	var cmdArgs = [];
-	var nextCmdArgs = [];
+	try {
+		var cmdArgs = [];
+		var nextCmdArgs = [];
 
-	for(var i = 0; i < args.length; i++) {
-		if(args[i] === '|') {
-			nextCmdArgs = args.slice(i + 1);
-			break;
+		for(var i = 0; i < args.length; i++) {
+			if(args[i] === '|') {
+				nextCmdArgs = args.slice(i + 1);
+				break;
+			}
+
+			cmdArgs.push(args[i]);
 		}
 
-		cmdArgs.push(args[i]);
-	}
+		var o = this.getopt.parse(cmdArgs);
 
-	var o = this.getopt.parse(cmdArgs);
-
-	this.options = o.options;
-	this.arguments = o.argv;
+		this.options = o.options;
+		this.arguments = o.argv;
 
 
-	var output;
-	this.stdin = stdin;
+		var output;
+		this.stdin = stdin;
 
-	if(nextCmdArgs.length) { // запустили с внутренним пайпом
-		var childCmd = nextCmdArgs.shift();
-		var child = Router.needUtil(childCmd);
+		if(nextCmdArgs.length) { // запустили с внутренним пайпом
+			var childCmd = nextCmdArgs.shift();
+			var child = Router.needUtil(childCmd);
 
-		output = child.runAsPipe(this.run(), stdout, nextCmdArgs);
-	} else { // либо запустили только одну команду, либо это последняя
-		this.stdout = stdout;
+			output = child.runAsPipe(this.run(), stdout, nextCmdArgs);
+		} else { // либо запустили только одну команду, либо это последняя
+			this.stdout = stdout;
 
-		output = this.run();
+			output = this.run();
 
-		this._outputToStdout(output);
+			this._outputToStdout(output);
+		}
+	} catch(e) {
+		if(e instanceof Util.error.NeedArgument || e instanceof Util.error.NotEnoughArguments) {
+			console.error(e.message);
+			this.getopt.showHelp();
+			process.exit(255);
+		}
+
+		throw e;
 	}
 
 	return output;
+};
+
+Util.prototype.runAsInline = function(stdin, stdout, options, args) {
+	this.options = options;
+	this.arguments = args;
+
+	this.stdin = stdin;
+	this.stdout = stdout;
+
+	var output = this.run();
+
+	this._outputToStdout(output);
+
+	return output;
+};
+
+Util.prototype.overrideOption = function(option, value) {
+	this.optionsOverride[option] = value;
 };
 
 Util.prototype.fatalError = function(e) {
@@ -84,18 +121,13 @@ Util.prototype._outputToStdout = function(output) {
 		return;
 	}
 
-	switch(output.elementsType) {
-		case 'object':
-			output = output.pipe(this.jp.jsonStringify());
-		case 'line':
-			output = output.pipe(this.jp.joinLines())
-		break;
-	}
-
-	output.pipe(this.stdout);
+	this.getRawStream(output).pipe(this.stdout);
 };
 
 Util.prototype.getOption = function(opt) {
+	if(this.optionsOverride[opt] !== undefined)
+		return this.optionsOverride[opt];
+
 	return this.options[opt];
 };
 
@@ -116,13 +148,31 @@ Util.prototype.needArgument = function(offset) {
 };
 
 Util.prototype.needOptionFunction = function(opt, args, defaultVariableName, options) {
+	var f = this.getOptionFunction(opt, args, defaultVariableName, options);
+
+	if(!f)
+		throw new (Util.error.NeedArgument)(opt);
+
+	return f;
+};
+
+Util.prototype.getOptionFunction = function(opt, args, defaultVariableName, options) {
 	if(!args)
 		args = ['r'];
 
 	if(!defaultVariableName)
 		defaultVariableName = 'r';
 
-	return new ArgFunction(this.needOption(opt), args, defaultVariableName, options);
+	var v = this.getOption(opt);
+
+	if(v) {
+		/* специальный кейс когда агрументы задаются из скрипта */
+		if(v instanceof Function)
+			return v;
+		return new ArgFunction(v, args, defaultVariableName, options);
+	}
+
+	return null;
 };
 
 Util.prototype.needArgumentFunction = function(argumentOffset, args, defaultVariableName, options) {
@@ -195,6 +245,7 @@ Util.prototype.getConcatenatedInputObjectsStream = function() {
 
 	var pipeNext = function() {
 		var s = list.shift();
+
 		if(!s) {
 			pipe.end();
 			return;
@@ -202,6 +253,32 @@ Util.prototype.getConcatenatedInputObjectsStream = function() {
 
 		s.on('end', pipeNext);
 		self.getObjectsStream(s).pipe(pipe, {end: false});
+	}
+
+	pipeNext();
+
+	return pipe;
+};
+
+Util.prototype.getConcatenatedInputRawStream = function() {
+	var self = this;
+	var streams = this.getInputStreams();
+	if(streams.length === 1) {
+		return self.getRawStream(streams[0]);
+	}
+
+	var list = streams.slice(0);
+	var pipe = new (require('stream').PassThrough);
+
+	var pipeNext = function() {
+		var s = list.shift();
+		if(!s) {
+			pipe.end();
+			return;
+		}
+
+		s.on('end', pipeNext);
+		self.getRawStream(s).pipe(pipe, {end: false});
 	}
 
 	pipeNext();
@@ -232,6 +309,19 @@ Util.prototype.getObjectsStream = function(stream) {
 		break;
 		default:
 			return stream.pipe(this.jp.splitLines()).pipe(this.jp.jsonParse());
+	}
+};
+
+Util.prototype.getRawStream = function(stream) {
+	switch(stream.elementsType) {
+		case 'line':
+			return stream.pipe(this.jp.joinLines());
+		break;
+		case 'object':
+			return stream.pipe(this.jp.jsonStringify()).pipe(this.jp.joinLines());
+		break;
+		default:
+			return stream
 	}
 };
 

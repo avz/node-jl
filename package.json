@@ -1,0 +1,27 @@
+{
+	"name": "jl",
+	"version": "0.0.1",
+	"description": "Command-line JSON manipulation library",
+	"keywords": [
+		"mkfifo"
+	],
+	"homepage": "https://github.com/avz/node-jl",
+	"repository": {
+		"type" : "git",
+		"url" : "https://github.com/avz/node-jl.git"
+	},
+	"license": "BSD",
+	"author": "Artem Zaytsev <arepo@nologin.ru>",
+	"main": "./main.js",
+	"engines": {
+		"node": ">=0.10"
+	},
+
+	"dependencies": {
+		"mkfifo": "latest",
+		"csv-parse": "latest",
+		"node-getopt": "latest"
+	},
+
+	"os": ["linux", "freebsd", "darwin"]
+}
