@@ -11,6 +11,89 @@ JSON-представление каждой записи не должно им
 npm install -g jl
 ```
 
+Примеры использования
+-----
+
+Имеет лог-файл `/tmp/test.json`, содержащий такие записи
+```json
+{"ts": 1416595508, "type": "click"}
+{"ts": 1416478467, "type": "buy", "price": 10}
+{"ts": 1416466930, "type": "click"}
+{"ts": 1416622653, "type": "buy", "price": 20}
+{"ts": 1416699396, "type": "click"}
+{"ts": 1416624334, "type": "click"}
+{"ts": 1416518859, "type": "click"}
+{"ts": 1416569870, "type": "click"}
+{"ts": 1416573325, "type": "click"}
+{"ts": 1416682270, "type": "click"}
+```
+
+#### Фильтрация и агрегация
+
+Отфильтруем только события с типом `buy`
+```sh
+cat /tmp/test.json \
+	| jl-filter 'type == "buy"'
+```
+```json
+{"ts": 1416478467, "type": "buy", "price": 10}
+{"ts": 1416622653, "type": "buy", "price": 20}
+```
+
+Добавим подсчёт суммы всех `price`
+```sh
+cat /tmp/test.json \
+	| jl-filter 'type == "buy"'
+	| jl-sum price
+```
+```json
+{"value":30}
+```
+
+Чтобы получить просто `30` можно добавить в конце вызов `jl-extract value` - эта команда извлекает строковое представление значения поля.
+
+#### Сортировка
+
+Отсортируем лог по полю `ts`
+```sh
+cat /tmp/test.json \
+	| jl-sort ts
+```
+```json
+{"ts": 1416466930, "type": "click"}
+{"ts": 1416478467, "type": "buy", "price": 10}
+{"ts": 1416518859, "type": "click"}
+{"ts": 1416569870, "type": "click"}
+{"ts": 1416573325, "type": "click"}
+{"ts": 1416595508, "type": "click"}
+{"ts": 1416622653, "type": "buy", "price": 20}
+{"ts": 1416624334, "type": "click"}
+{"ts": 1416682270, "type": "click"}
+{"ts": 1416699396, "type": "click"}
+```
+
+Также поддерживаются стандартные аргументы утилиты `sort`: `-r`, `-n`, `-u`, `-m`, `-s`, `-T`, `-S`
+
+#### Модификация
+
+Добавим в каждый объект поле `date`, содержащее дату события в UTC
+```sh
+cat /tmp/test.json \
+	| jl-transform '{r.date = (new Date(r.ts * 1000)).toUTCString()}'
+```
+```json
+{"ts":1416595508,"type":"click","date":"Fri, 21 Nov 2014 18:45:08 GMT"}
+{"ts":1416478467,"type":"buy","price":10,"date":"Thu, 20 Nov 2014 10:14:27 GMT"}
+{"ts":1416466930,"type":"click","date":"Thu, 20 Nov 2014 07:02:10 GMT"}
+{"ts":1416622653,"type":"buy","price":20,"date":"Sat, 22 Nov 2014 02:17:33 GMT"}
+{"ts":1416699396,"type":"click","date":"Sat, 22 Nov 2014 23:36:36 GMT"}
+{"ts":1416624334,"type":"click","date":"Sat, 22 Nov 2014 02:45:34 GMT"}
+{"ts":1416518859,"type":"click","date":"Thu, 20 Nov 2014 21:27:39 GMT"}
+{"ts":1416569870,"type":"click","date":"Fri, 21 Nov 2014 11:37:50 GMT"}
+{"ts":1416573325,"type":"click","date":"Fri, 21 Nov 2014 12:35:25 GMT"}
+{"ts":1416682270,"type":"click","date":"Sat, 22 Nov 2014 18:51:10 GMT"}
+```
+
 Утилиты
 -----
 
@@ -43,7 +126,7 @@ npm install -g jl
 Для лучшего понимания, приведу пример простой реализации `jl-sum`, которая считают сумму поля `amount`
 для каждого юзера, который идентификируется полем `uid`
 
-```
+```sh
 jl-reduce -k uid -i '{this.sum = 0}' -u '{this.sum += r.amount}' -r '{return this.sum}'
 ```
 
