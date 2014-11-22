@@ -21,6 +21,7 @@ Router.needUtil = function(command) {
 		transform: require('./util/TransformUtil.js').TransformUtil,
 		reduce: require('./util/ReduceUtil.js').ReduceUtil,
 		extract: require('./util/ExtractUtil.js').ExtractUtil,
+		plainify: require('./util/PlainifyUtil.js').PlainifyUtil,
 		'from-csv': require('./util/FromCsvUtil.js').FromCsvUtil
 	};
 
