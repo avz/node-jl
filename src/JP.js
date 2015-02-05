@@ -3,7 +3,7 @@ var Transform = require('stream').Transform;
 var Readable = require('stream').Readable;
 
 function JP() {
-	this.objectStreamHightWarerMark = 1;
+	this.objectStreamHighWaterMark = 1;
 };
 
 JP.Error = function(message) {
@@ -21,7 +21,7 @@ JP.prototype._createObjectsTransform = function(type, constElements, options) {
 
 	var to = {
 		objectMode: true,
-		highWaterMark: self.objectStreamHightWarerMark
+		highWaterMark: self.objectStreamHighWaterMark
 	};
 
 	if(options) {
