@@ -3,7 +3,10 @@
 	"version": "0.0.7",
 	"description": "Command-line JSON manipulation library",
 	"keywords": [
-		"mkfifo"
+		"json",
+		"cli",
+		"commandline",
+		"pipe"
 	],
 	"homepage": "https://github.com/avz/node-jl",
 	"repository": {
