@@ -235,20 +235,30 @@ JP.prototype.toChunks = function(chunkSize) {
 };
 
 JP.prototype.jsonParse = function() {
-	return this.map(function(line) {
-		/* Пробел - хак для ускорения парсинга жсона */
-		var l = ' ' + line;
+	var transform = this._createObjectsTransform('object', true);
 
-		try {
-			var o = JSON.parse(l);
-		} catch(e) {
-			throw new (JP.Error.JsonParsingError)(line.replace(/^\s+|\s+$/g, '', e));
+	transform._transform = function(lines, encoding, callback) {
+		var result = [];
+
+		for(var i = 0; i < lines.length; i++) {
+			var line = lines[i];
+
+			try {
+				/* Пробел - хак для ускорения парсинга жсона */
+				var o = JSON.parse(' ' + line);
+			} catch(e) {
+				throw new (JP.Error.JsonParsingError)(line.replace(/^\s+|\s+$/g, '', e));
+			}
+
+			o.___jp_originalJsonLine = line;
+			result.push(o);
 		}
 
-		o.___jp_originalJsonLine = line;
+		this.push(result);
+		callback();
+	};
 
-		return o;
-	}, {resultType: 'object', constElements: true});
+	return this._wrapStream(transform);
 };
 
 exports.JP = JP;
