@@ -5,6 +5,7 @@ var Router = require('./Router.js').Router;
 function Util(args, argString) {
 	args.push(['h', 'help', 'show this help']);
 	args.push(['I', '', 'ignore JSON parsing errors']);
+	args.push(['', 'include=ARG+', 'include this JS-file at startup']);
 
 	this.getopt = require('node-getopt').create(args);
 	var title = require('path').basename(process.argv[1]);
@@ -90,6 +91,11 @@ Util.prototype.runAsPipe = function(stdin, stdout, args) {
 			this.jsonParsingErrorHandler = function(line, e) {
 				self.jsonParsingErrorHandlerIgnore(line, e);
 			};
+		}
+
+		if(this.options.include) {
+			for(var i = 0; i < this.options.include.length; i++)
+				require(this.options.include[i]);
 		}
 
 		var output;
