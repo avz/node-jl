@@ -4,6 +4,7 @@ var Router = require('./Router.js').Router;
 
 function Util(args, argString) {
 	args.push(['h', 'help', 'show this help']);
+	args.push(['I', '', 'ignore JSON parsing errors']);
 
 	this.getopt = require('node-getopt').create(args);
 	var title = require('path').basename(process.argv[1]);
@@ -25,6 +26,12 @@ function Util(args, argString) {
 	this.stdout = null;
 
 	this.jp = new JP;
+
+	var self = this;
+
+	this.jsonParsingErrorHandler = function(line, e) {
+		self.jsonParsingErrorHandlerFatal(line, e);
+	};
 };
 
 Util.error = {};
@@ -35,6 +42,15 @@ Util.error.NeedArgument = function(opt) {
 
 Util.error.NotEnoughArguments = function(num) {
 	this.message = 'not enough arguments: ' + (num + 1);
+};
+
+Util.prototype.jsonParsingErrorHandlerFatal = function(line, e) {
+	this.jsonParsingErrorHandlerIgnore(line, e);
+	process.exit(1);
+};
+
+Util.prototype.jsonParsingErrorHandlerIgnore = function(line, e) {
+	process.stderr.write('ERROR: JSON parsing error (' + e.message + ') in: ' + line.replace(/^\s*|\s*$/g, '') + '\n');
 };
 
 Util.prototype.runFromShell = function(argv) {
@@ -51,6 +67,7 @@ Util.prototype.runFromShell = function(argv) {
 };
 
 Util.prototype.runAsPipe = function(stdin, stdout, args) {
+	var self = this;
 	try {
 		var cmdArgs = [];
 		var nextCmdArgs = [];
@@ -69,6 +86,11 @@ Util.prototype.runAsPipe = function(stdin, stdout, args) {
 		this.options = o.options;
 		this.arguments = o.argv;
 
+		if(this.options.I) {
+			this.jsonParsingErrorHandler = function(line, e) {
+				self.jsonParsingErrorHandlerIgnore(line, e);
+			};
+		}
 
 		var output;
 		this.stdin = stdin;
@@ -309,13 +331,13 @@ Util.prototype.getLinesStream = function(stream) {
 Util.prototype.getObjectsStream = function(stream) {
 	switch(stream.elementsType) {
 		case 'line':
-			return stream.pipe(this.jp.jsonParse());
+			return stream.pipe(this.jp.jsonParse(this.jsonParsingErrorHandler));
 		break;
 		case 'object':
 			return stream;
 		break;
 		default:
-			return stream.pipe(this.jp.splitLines()).pipe(this.jp.jsonParse());
+			return stream.pipe(this.jp.splitLines()).pipe(this.jp.jsonParse(this.jsonParsingErrorHandler));
 	}
 };
 

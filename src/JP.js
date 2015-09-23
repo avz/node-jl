@@ -234,7 +234,7 @@ JP.prototype.toChunks = function(chunkSize) {
 	return transform;
 };
 
-JP.prototype.jsonParse = function() {
+JP.prototype.jsonParse = function(parsingErrorHandler) {
 	var transform = this._createObjectsTransform('object', true);
 
 	transform._transform = function(lines, encoding, callback) {
@@ -247,7 +247,12 @@ JP.prototype.jsonParse = function() {
 				/* Пробел - хак для ускорения парсинга жсона */
 				var o = JSON.parse(' ' + line);
 			} catch(e) {
-				throw new (JP.Error.JsonParsingError)(line.replace(/^\s+|\s+$/g, '', e));
+				if(parsingErrorHandler) {
+					parsingErrorHandler(line, e);
+					continue;
+				} else {
+					throw new (JP.Error.JsonParsingError)(line.replace(/^\s+|\s+$/g, ''));
+				}
 			}
 
 			o.___jp_originalJsonLine = line;
