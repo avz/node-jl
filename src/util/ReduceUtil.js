@@ -12,11 +12,12 @@ require('util').inherits(ReduceUtil, require('../Util.js').Util);
 
 ReduceUtil.prototype.run = function() {
 	var tr = this.jp._createObjectsTransform('object', false);
+	var jp = this.jp;
 
 	var getGroupKey = this.getOptionFunction('key');
 
 	var init = this.needOptionFunction('init');
-	var update = this.needOptionFunction('update', ['r', 'value']);
+	var update = this.needOptionFunction('update', ['r', 'value', 'env']);
 	var result = this.needOptionFunction('result');
 
 	var valueCb = null;
@@ -34,7 +35,7 @@ ReduceUtil.prototype.run = function() {
 		if(group) {
 			tr.push([{
 				key: group.key,
-				value: result.call(group)
+				value: result.call(group, jp.env)
 			}]);
 		}
 	};
@@ -58,21 +59,21 @@ ReduceUtil.prototype.run = function() {
 						key: groupKey
 					};
 
-					init.call(group);
+					init.call(group, jp.env);
 				}
 
-				update.call(group, item, valueCb);
+				update.call(group, item, valueCb, jp.env);
 			}
 
 			callback();
 		};
 	} else {
 		group = {};
-		init.call(group);
+		init.call(group, jp.env);
 
 		tr._transform = function(chunk, encoding, callback) {
 			for(var i = 0; i < chunk.length; i++) {
-				update.call(group, chunk[i], valueCb);
+				update.call(group, chunk[i], valueCb, jp.env);
 			}
 			callback();
 		};

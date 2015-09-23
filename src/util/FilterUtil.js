@@ -14,8 +14,8 @@ FilterUtil.prototype.run = function() {
 
 	var inputStream = this.getConcatenatedInputObjectsStream();
 
-	return inputStream.pipe(this.jp.filter(function(item) {
-		var matched = filterFunction(item);
+	return inputStream.pipe(this.jp.filter(function(item, env) {
+		var matched = filterFunction(item, env);
 
 		if(invertMatch)
 			return !matched;

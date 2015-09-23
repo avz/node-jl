@@ -7,8 +7,8 @@ function SumUtil() {
 		this.sum = 0;
 	});
 
-	u.overrideOption('update', function(r, valueCb) {
-		var v = valueCb(r);
+	u.overrideOption('update', function(r, valueCb, env) {
+		var v = valueCb(r, env);
 		var number = parseFloat(v);
 
 		if(!isNaN(number))

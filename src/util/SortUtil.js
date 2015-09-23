@@ -32,14 +32,14 @@ SortUtil.prototype.run = function() {
 	var keyStringGenerator;
 
 	if(sortOptions.numeric) {
-		keyStringGenerator = function(obj) {
-			var key = keyGenerator(obj);
+		keyStringGenerator = function(obj, env) {
+			var key = keyGenerator(obj, env);
 
 			return ('' + key).match(/^[0-9]*/)[0];
 		};
 	} else {
-		keyStringGenerator = function(obj) {
-			var key = keyGenerator(obj);
+		keyStringGenerator = function(obj, env) {
+			var key = keyGenerator(obj, env);
 
 			return JSON.stringify(key);
 		};
@@ -60,10 +60,10 @@ SortUtil.prototype.run = function() {
 	 * @returns {unresolved}
 	 */
 	var convertFromLines = function(stream) {
-		var exportKey = function(line) {
+		var exportKey = function(line, env) {
 			var obj = JSON.parse(' ' + line);
 
-			var keyString = keyStringGenerator(obj);
+			var keyString = keyStringGenerator(obj, env);
 
 			return keyString + separator + line;
 		};
@@ -77,8 +77,8 @@ SortUtil.prototype.run = function() {
 	 * @returns {unresolved}
 	 */
 	var convertFromObjects = function(stream) {
-		var exportKey = function(obj) {
-			var keyString = keyStringGenerator(obj);
+		var exportKey = function(obj, env) {
+			var keyString = keyStringGenerator(obj, env);
 
 			if(stream.constElements) {
 				if(obj.___jp_originalJsonLine)

@@ -4,6 +4,8 @@ var Readable = require('stream').Readable;
 
 function JP() {
 	this.objectStreamHighWaterMark = 1;
+
+	this.env = {};
 };
 
 JP.Error = function(message) {
@@ -49,7 +51,13 @@ JP.prototype._wrapStream = function(stream) {
 	return stream;
 };
 
+JP.prototype.setEnv = function(env) {
+	this.env = env;
+};
+
 JP.prototype.map = function(cb, options) {
+	var self = this;
+
 	options = options || {};
 	if(options.constElements === undefined)
 		options.constElements = false;
@@ -61,7 +69,7 @@ JP.prototype.map = function(cb, options) {
 
 		for(var i = 0; i < items.length; i++) {
 			try {
-				out.push(cb.call(this, items[i]));
+				out.push(cb.call(this, items[i], self.env));
 			} catch(e) {
 				if(e instanceof JP.Error) {
 					console.error('Error: ' + e.message);
@@ -81,13 +89,15 @@ JP.prototype.map = function(cb, options) {
 };
 
 JP.prototype.filter = function(cb) {
+	var self = this;
+
 	var transform = this._createObjectsTransform(undefined, true);
 
 	transform._transform = function(items, encoding, callback) {
 		var out = [];
 
 		for(var i = 0; i < items.length; i++) {
-			if(cb(items[i]))
+			if(cb(items[i], self.env))
 				out.push(items[i]);
 		}
 

@@ -6,6 +6,7 @@ function Util(args, argString) {
 	args.push(['h', 'help', 'show this help']);
 	args.push(['I', '', 'ignore JSON parsing errors']);
 	args.push(['', 'include=ARG+', 'include this JS-file at startup']);
+	args.push(['', 'env=ARG', 'set environment (node.js module)']);
 
 	this.getopt = require('node-getopt').create(args);
 	var title = require('path').basename(process.argv[1]);
@@ -96,6 +97,10 @@ Util.prototype.runAsPipe = function(stdin, stdout, args) {
 		if(this.options.include) {
 			for(var i = 0; i < this.options.include.length; i++)
 				require(this.options.include[i]);
+		}
+
+		if(this.options.env) {
+			this.jp.setEnv(require(this.options.env));
 		}
 
 		var output;
@@ -193,7 +198,7 @@ Util.prototype.needOptionFunction = function(opt, args, defaultVariableName, opt
 
 Util.prototype.getOptionFunction = function(opt, args, defaultVariableName, options) {
 	if(!args)
-		args = ['r'];
+		args = ['r', 'env'];
 
 	if(!defaultVariableName)
 		defaultVariableName = 'r';
@@ -212,7 +217,7 @@ Util.prototype.getOptionFunction = function(opt, args, defaultVariableName, opti
 
 Util.prototype.needArgumentFunction = function(argumentOffset, args, defaultVariableName, options) {
 	if(!args)
-		args = ['r'];
+		args = ['r', 'env'];
 
 	if(!defaultVariableName)
 		defaultVariableName = 'r';

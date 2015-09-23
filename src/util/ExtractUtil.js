@@ -11,8 +11,8 @@ ExtractUtil.prototype.run = function() {
 
 	var inputStream = this.getConcatenatedInputObjectsStream();
 
-	return inputStream.pipe(this.jp.map(function(item) {
-		var v = mapFunction(item);
+	return inputStream.pipe(this.jp.map(function(item, env) {
+		var v = mapFunction(item, env);
 
 		if(v === undefined)
 			return '';
