@@ -74,6 +74,8 @@ Util.prototype.runAsSubpipe = function(stdin, stdout, args) {
 	var childCmd = args.shift();
 	var child = Router.needUtil(childCmd);
 
+	child.jp.addEnv(this.jp.env);
+
 	return child.runAsPipe(stdin, stdout, args, true);
 };
 
@@ -118,6 +120,8 @@ Util.prototype.runAsPipe = function(stdin, stdout, args, isSubpipe) {
 		if(nextCmdArgs.length) { // запустили с внутренним пайпом
 			var childCmd = nextCmdArgs.shift();
 			var child = Router.needUtil(childCmd);
+
+			child.jp.addEnv(this.jp.env);
 
 			output = child.runAsPipe(this.run(), stdout, nextCmdArgs);
 		} else { // либо запустили только одну команду, либо это последняя
