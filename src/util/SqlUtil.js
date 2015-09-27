@@ -238,6 +238,41 @@ SqlUtil.prototype.aggregationFunctions = {
 			return this.min;
 		};
 	},
+	MAX: function() {
+		this.max = -Infinity;
+
+		this.update = function(value) {
+			if(value === undefined || value === null)
+				return;
+
+			var v = value - 0;
+			if(isNaN(v))
+				return;
+
+			if(v > this.max)
+				this.max = v;
+		};
+
+		this.result = function() {
+			return this.max;
+		};
+	},
+	COUNT: function() {
+		this.count = 0;
+
+		this.update = function(v) {
+			if(arguments.length) { // COUNT(expression)
+				if(v !== null && v !== undefined)
+					this.count++;
+			} else { // COUNT(*)
+				this.count++;
+			}
+		};
+
+		this.result = function() {
+			return this.count;
+		};
+	},
 	LAST: function() {
 		this.last = null;
 
