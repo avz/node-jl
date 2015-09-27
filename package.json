@@ -1,6 +1,6 @@
 {
 	"name": "jl",
-	"version": "1.2.0",
+	"version": "2.0.0",
 	"description": "Command-line JSON manipulation library",
 	"keywords": [
 		"json",
@@ -13,7 +13,7 @@
 		"type" : "git",
 		"url" : "https://github.com/avz/node-jl.git"
 	},
-	"license": "BSD",
+	"license": "BSD-2-Clause",
 	"author": "Artem Zaytsev <arepo@nologin.ru>",
 	"main": "./main.js",
 
@@ -29,6 +29,10 @@
 		"mkfifo": "latest",
 		"csv-parse": "latest",
 		"node-getopt": "latest"
+	},
+
+	"devDependencies": {
+		"jison": "0.4"
 	},
 
 	"os": ["linux", "freebsd", "darwin"]
