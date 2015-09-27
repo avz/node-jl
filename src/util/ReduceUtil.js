@@ -16,9 +16,9 @@ ReduceUtil.prototype.run = function() {
 
 	var getGroupKey = this.getOptionFunction('key');
 
-	var init = this.needOptionFunction('init');
+	var init = this.needOptionFunction('init', ['env']);
 	var update = this.needOptionFunction('update', ['r', 'value', 'env']);
-	var result = this.needOptionFunction('result');
+	var result = this.needOptionFunction('result', ['env']);
 
 	var valueCb = null;
 	/* эта штука ставится только из sum/count и прочих агрегатов, наботающих на базе reduce */
