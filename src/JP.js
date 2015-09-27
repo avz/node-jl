@@ -51,8 +51,9 @@ JP.prototype._wrapStream = function(stream) {
 	return stream;
 };
 
-JP.prototype.setEnv = function(env) {
-	this.env = env;
+JP.prototype.addEnv = function(env) {
+	for(var n in env)
+		this.env[n] = env[n];
 };
 
 JP.prototype.map = function(cb, options) {

@@ -68,7 +68,16 @@ Util.prototype.runFromShell = function(argv) {
 	this.runAsPipe(process.stdin, process.stdout, args);
 };
 
-Util.prototype.runAsPipe = function(stdin, stdout, args) {
+Util.prototype.runAsSubpipe = function(stdin, stdout, args) {
+	args = args.slice();
+
+	var childCmd = args.shift();
+	var child = Router.needUtil(childCmd);
+
+	return child.runAsPipe(stdin, stdout, args, true);
+};
+
+Util.prototype.runAsPipe = function(stdin, stdout, args, isSubpipe) {
 	var self = this;
 	try {
 		var cmdArgs = [];
@@ -100,7 +109,7 @@ Util.prototype.runAsPipe = function(stdin, stdout, args) {
 		}
 
 		if(this.options.env) {
-			this.jp.setEnv(require(this.options.env));
+			this.jp.addEnv(require(this.options.env));
 		}
 
 		var output;
@@ -116,7 +125,8 @@ Util.prototype.runAsPipe = function(stdin, stdout, args) {
 
 			output = this.run();
 
-			this._outputToStdout(output);
+			if(!isSubpipe)
+				this._outputToStdout(output);
 		}
 	} catch(e) {
 		if(e instanceof Util.error.NeedArgument || e instanceof Util.error.NotEnoughArguments) {
