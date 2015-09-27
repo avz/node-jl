@@ -123,7 +123,7 @@ Util.prototype.runAsPipe = function(stdin, stdout, args, isSubpipe) {
 
 			child.jp.addEnv(this.jp.env);
 
-			output = child.runAsPipe(this.run(), stdout, nextCmdArgs);
+			output = child.runAsPipe(this.run(), stdout, nextCmdArgs, isSubpipe);
 		} else { // либо запустили только одну команду, либо это последняя
 			this.stdout = stdout;
 
