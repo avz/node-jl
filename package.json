@@ -1,9 +1,10 @@
 {
 	"name": "jl",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"description": "Command-line JSON manipulation library",
 	"keywords": [
 		"json",
+		"sql",
 		"cli",
 		"commandline",
 		"pipe"
