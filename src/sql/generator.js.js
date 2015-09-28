@@ -96,7 +96,7 @@ GeneratorJs.prototype.ComplexIdent = function(ast) {
 		checks.push(this.rowNamespace + '[' + segs.map(JSON.stringify).join('][') + ']');
 	}
 
-	return checks.join(' || ');
+	return '(' + checks.join(' || ') + ')';
 };
 
 GeneratorJs.prototype.Number = function(ast) {
