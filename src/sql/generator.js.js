@@ -88,7 +88,27 @@ GeneratorJs.prototype.FunctionIdent = function(ast) {
 };
 
 GeneratorJs.prototype.ComplexIdent = function(ast) {
-	return this.rowNamespace + '[' + ast.fragments.map(JSON.stringify).join('][') + ']';
+	this.rowNamespace = 'r';
+
+	var namespace = this.rowNamespace;
+	var checks = [];
+
+	var getJsIdent = function(path) {
+		return namespace + '[' + path.map(JSON.stringify).join('][') + ']'
+	};
+
+	for(var i = 0; i < ast.fragments.length - 1; i++) {
+		var segs = ast.fragments.slice(0, i + 1);
+
+		var p = getJsIdent(segs);
+		checks.push(p + ' !== null');
+		checks.push(p + ' !== undefined');
+	}
+
+	if(checks.length)
+		return '((' + checks.join(' && ') + ') ? ' + getJsIdent(ast.fragments) + ' : undefined)';
+	else
+		return getJsIdent(ast.fragments);
 };
 
 GeneratorJs.prototype.Number = function(ast) {
