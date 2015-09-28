@@ -88,15 +88,7 @@ GeneratorJs.prototype.FunctionIdent = function(ast) {
 };
 
 GeneratorJs.prototype.ComplexIdent = function(ast) {
-	var checks = [];
-
-	for(var i = 0; i < ast.fragments.length; i++) {
-		var segs = ast.fragments.slice(0, i + 1);
-
-		checks.push(this.rowNamespace + '[' + segs.map(JSON.stringify).join('][') + ']');
-	}
-
-	return '(' + checks.join(' || ') + ')';
+	return this.rowNamespace + '[' + ast.fragments.map(JSON.stringify).join('][') + ']';
 };
 
 GeneratorJs.prototype.Number = function(ast) {
