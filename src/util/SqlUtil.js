@@ -1,7 +1,13 @@
 var sqlParser = require('../sql/sql.js');
 var sqlNodes = require('../sql/nodes.js');
 var GeneratorJs = require('../sql/generator.js').GeneratorJs;
-var HLL = require('hll-native').HLL;
+
+var HLL;
+try {
+	HLL = require('hll-native').HLL;
+} catch(e) {
+	HLL = null;
+}
 
 function SqlUtil() {
 	SqlUtil.super_.call(this, [
@@ -275,6 +281,10 @@ SqlUtil.prototype.aggregationFunctions = {
 		};
 	},
 	HLL_COUNT_DISTINCT: function() {
+		if(!HLL) {
+			throw new Error('NPM module hll-native is not installed.');
+		}
+		
 		this.set = new HLL(20);
 
 		this.update = function(arg/* args */) {
