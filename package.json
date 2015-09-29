@@ -1,6 +1,6 @@
 {
 	"name": "jl",
-	"version": "2.0.6",
+	"version": "2.0.7",
 	"description": "Command-line JSON manipulation library",
 	"keywords": [
 		"json",
@@ -29,7 +29,8 @@
 	"dependencies": {
 		"mkfifo": "latest",
 		"csv-parse": "latest",
-		"node-getopt": "latest"
+		"node-getopt": "latest",
+		"hll-native": "1"
 	},
 
 	"devDependencies": {

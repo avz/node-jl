@@ -1,6 +1,7 @@
 var sqlParser = require('../sql/sql.js');
 var sqlNodes = require('../sql/nodes.js');
 var GeneratorJs = require('../sql/generator.js').GeneratorJs;
+var HLL = require('hll-native').HLL;
 
 function SqlUtil() {
 	SqlUtil.super_.call(this, [
@@ -271,6 +272,34 @@ SqlUtil.prototype.aggregationFunctions = {
 
 		this.result = function() {
 			return this.count;
+		};
+	},
+	HLL_COUNT_DISTINCT: function() {
+		this.set = new HLL(20);
+
+		this.update = function(arg/* args */) {
+			var key;
+
+			if(arguments.length === 1) {
+				key = JSON.stringify(arg)
+			} else {
+				var args = [];
+				for(var i = 0; i < arguments.length; i++) {
+					var a = arguments[i];
+					if(a === undefined)
+						a = null;
+
+					args.push(a);
+				}
+
+				key = JSON.stringify(args);
+			}
+
+			this.set.add(key);
+		};
+
+		this.result = function() {
+			return this.set.count();
 		};
 	},
 	LAST: function() {
