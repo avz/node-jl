@@ -43,10 +43,70 @@ SqlUtil.prototype.run = function() {
 	}
 
 	cmds.shift(); // leading |
-//console.error(cmds);
-	var output = this.runAsSubpipe(this.stdin, this.stdout, cmds);
+
+	var stdin = this.stdin;
+	stdin = this.pickUsedColumns(ast, stdin);
+
+	var output = this.runAsSubpipe(stdin, this.stdout, cmds);
 
 	return output;
+};
+
+/**
+ * Оставить в обектах только реально используемые поля. Помогает для сложных
+ * запросов с сортировками за счёт того, что JSON.stringify() и JSON.parse()
+ * выполняется для небольших объектов.
+ * @param {type} ast
+ * @param {type} stream
+ * @returns {undefined}
+ */
+SqlUtil.prototype.pickUsedColumns = function(selectAst, stream) {
+	var self = this;
+	var templateTree = {};
+
+	this.walkAstNodes(selectAst, sqlNodes.ColumnIdent, function(ident) {
+		var path = ident.fragments;
+
+		var o = templateTree;
+
+		for(var i = 0; i < path.length - 1; i++) {
+			var s = path[i];
+			if(o[s] === undefined)
+				o[s] = {};
+
+			o = o[s];
+		}
+
+		o[path[path.length - 1]] = self.generator.fromAst(ident);
+	});
+
+	var toCode = function(template) {
+		var code = '{';
+
+		for(var k in template) {
+			var v = template[k];
+
+			code += JSON.stringify(k) + ': ';
+
+			if(typeof(v) === 'string') {
+				code += v + ', ';
+			} else {
+				code += toCode(v) + ', ';
+			}
+		}
+
+		code += '}';
+
+		return code;
+	};
+
+	var code = toCode(templateTree);
+
+	var f = new Function('r', 'return ' + code);
+
+	var objects = this.getObjectsStream(stream);
+
+	return objects.pipe(this.jp.map(f));
 };
 
 SqlUtil.prototype.pipeReduceCmd = function(cmds, ast) {
@@ -130,30 +190,21 @@ SqlUtil.prototype.extractAggregation = function(ident, expression) {
 	var self = this;
 	var aggregationList = [];
 
-	var deep = function(expression) {
-		if(expression instanceof sqlNodes.Call) {
-			var name = expression.function.fragments.join('.');
-			var af = self.aggregationFunctions[name];
+	this.walkAstNodes(expression, sqlNodes.Call, function(expression) {
+		var name = expression.function.fragments.join('.');
+		var af = self.aggregationFunctions[name];
 
-			if(af) {
-				aggregationList.push({
-					name: name,
-					init: 'new (env.' + name + ')',
-					args: expression.args
-				});
+		if(af) {
+			aggregationList.push({
+				name: name,
+				init: 'new (env.' + name + ')',
+				args: expression.args
+			});
 
-				expression.function.fragments = ['_aggregations', ident, aggregationList.length - 1, 'result'];
-				expression.args = [];
-			}
-		} else if(expression && typeof expression === 'object') {
-			for(var k in expression) {
-				var v = expression[k];
-				deep(v);
-			}
+			expression.function.fragments = ['_aggregations', ident, aggregationList.length - 1, 'result'];
+			expression.args = [];
 		}
-	};
-
-	deep(expression);
+	});
 
 	if(!aggregationList.length)
 		return null;
@@ -284,7 +335,7 @@ SqlUtil.prototype.aggregationFunctions = {
 		if(!HLL) {
 			throw new Error('NPM module hll-native is not installed.');
 		}
-		
+
 		this.set = new HLL(20);
 
 		this.update = function(arg/* args */) {
@@ -324,6 +375,21 @@ SqlUtil.prototype.aggregationFunctions = {
 		};
 	}
 };
+
+SqlUtil.prototype.walkAstNodes = function(ast, nodeType, cb) {
+	var deep = function(expression) {
+		if(expression instanceof nodeType) {
+			cb(expression);
+		} else if(expression && typeof expression === 'object') {
+			for(var k in expression) {
+				var v = expression[k];
+				deep(v);
+			}
+		}
+	};
+
+	deep(ast);
+}
 
 SqlUtil.prototype.functionGetSource = function(fn) {
 	return fn.toString().replace(/^\s*function[^(]*\([^(]*\)\s*\{\s*([\s\S]*?)\s*\}\s*$/, '$1');
