@@ -34,6 +34,8 @@ function Util(args, argString) {
 	this.jsonParsingErrorHandler = function(line, e) {
 		self.jsonParsingErrorHandlerFatal(line, e);
 	};
+
+	this.ignoreJsonParsingError = false;
 };
 
 Util.error = {};
@@ -103,6 +105,8 @@ Util.prototype.runAsPipe = function(stdin, stdout, args, isSubpipe) {
 			this.jsonParsingErrorHandler = function(line, e) {
 				self.jsonParsingErrorHandlerIgnore(line, e);
 			};
+
+			this.ignoreJsonParsingError = true;
 		}
 
 		if(this.options.include) {
