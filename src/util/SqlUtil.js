@@ -45,7 +45,7 @@ SqlUtil.prototype.run = function() {
 	cmds.shift(); // leading |
 
 	var stdin = this.stdin;
-	stdin = this.pickUsedColumns(ast, stdin);
+	stdin = this.pickUsedColumnsJs(ast, stdin);
 
 	var output = this.runAsSubpipe(stdin, this.stdout, cmds);
 
@@ -60,7 +60,7 @@ SqlUtil.prototype.run = function() {
  * @param {type} stream
  * @returns {undefined}
  */
-SqlUtil.prototype.pickUsedColumns = function(selectAst, stream) {
+SqlUtil.prototype.pickUsedColumnsNative = function(selectAst, stream) {
 	var pathes = {};
 
 	this.walkAstNodes(selectAst, sqlNodes.ColumnIdent, function(ident) {
@@ -101,6 +101,55 @@ SqlUtil.prototype.pickUsedColumns = function(selectAst, stream) {
 	stream.pipe(p.stdin);
 
 	return p.stdout;
+};
+
+SqlUtil.prototype.pickUsedColumnsJs = function(selectAst, stream) {
+	var self = this;
+	var templateTree = {};
+
+	this.walkAstNodes(selectAst, sqlNodes.ColumnIdent, function(ident) {
+		var path = ident.fragments;
+
+		var o = templateTree;
+
+		for(var i = 0; i < path.length - 1; i++) {
+			var s = path[i];
+			if(o[s] === undefined)
+				o[s] = {};
+
+			o = o[s];
+		}
+
+		o[path[path.length - 1]] = self.generator.fromAst(ident);
+	});
+
+	var toCode = function(template) {
+		var code = '{';
+
+		for(var k in template) {
+			var v = template[k];
+
+			code += JSON.stringify(k) + ': ';
+
+			if(typeof(v) === 'string') {
+				code += v + ', ';
+			} else {
+				code += toCode(v) + ', ';
+			}
+		}
+
+		code += '}';
+
+		return code;
+	};
+
+	var code = toCode(templateTree);
+
+	var f = new Function('r', 'return ' + code);
+
+	var objects = this.getObjectsStream(stream);
+
+	return objects.pipe(this.jp.map(f));
 };
 
 SqlUtil.prototype.pipeReduceCmd = function(cmds, ast) {
