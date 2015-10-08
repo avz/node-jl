@@ -1,6 +1,6 @@
 {
 	"name": "jl",
-	"version": "2.0.9",
+	"version": "2.1.0",
 	"description": "Command-line JSON manipulation library",
 	"keywords": [
 		"json",
@@ -18,8 +18,22 @@
 	"author": "Artem Zaytsev <arepo@nologin.ru>",
 	"main": "./main.js",
 
-	"directories": {
-		"bin": "./bin"
+	"bin": {
+		"jl-pick": "src/native/pick/bin/jl-pick",
+		"jl-count": "bin/jl-count",
+		"jl-extract": "bin/jl-extract",
+		"jl-filter": "bin/jl-filter",
+		"jl-from-csv": "bin/jl-from-csv",
+		"jl-plainify": "bin/jl-plainify",
+		"jl-reduce": "bin/jl-reduce",
+		"jl-sort": "bin/jl-sort",
+		"jl-sql": "bin/jl-sql",
+		"jl-sum": "bin/jl-sum",
+		"jl-transform": "bin/jl-transform"
+	},
+
+	"scripts": {
+		"preinstall": "make -C src/native/pick clean build"
 	},
 
 	"engines": {
