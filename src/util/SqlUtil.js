@@ -45,7 +45,7 @@ SqlUtil.prototype.run = function() {
 	cmds.shift(); // leading |
 
 	var stdin = this.stdin;
-	stdin = this.pickUsedColumns(ast, stdin);
+//	stdin = this.pickUsedColumns(ast, stdin);
 
 	var output = this.runAsSubpipe(stdin, this.stdout, cmds);
 
@@ -61,52 +61,46 @@ SqlUtil.prototype.run = function() {
  * @returns {undefined}
  */
 SqlUtil.prototype.pickUsedColumns = function(selectAst, stream) {
-	var self = this;
-	var templateTree = {};
+	var pathes = {};
 
 	this.walkAstNodes(selectAst, sqlNodes.ColumnIdent, function(ident) {
-		var path = ident.fragments;
-
-		var o = templateTree;
-
-		for(var i = 0; i < path.length - 1; i++) {
-			var s = path[i];
-			if(o[s] === undefined)
-				o[s] = {};
-
-			o = o[s];
-		}
-
-		o[path[path.length - 1]] = self.generator.fromAst(ident);
+		var path = ident.fragments.join('.');
+		pathes[path] = path;
 	});
 
-	var toCode = function(template) {
-		var code = '{';
+	var list = Object.keys(pathes);
 
-		for(var k in template) {
-			var v = template[k];
+	var cmd = 'jl-pick';
 
-			code += JSON.stringify(k) + ': ';
+	var args = [];
 
-			if(typeof(v) === 'string') {
-				code += v + ', ';
-			} else {
-				code += toCode(v) + ', ';
-			}
-		}
+	if(this.ignoreJsonParsingError)
+		args.push('-I');
 
-		code += '}';
+	args = args.concat(list);
 
-		return code;
-	};
+	var options = {};
 
-	var code = toCode(templateTree);
+	options.stdio = [
+		'pipe',
+		options.outputStream || 'pipe',
+		process.stderr
+	];
 
-	var f = new Function('r', 'return ' + code);
+	var p = require('child_process').spawn(
+		cmd,
+		args,
+		options
+	);
 
-	var objects = this.getObjectsStream(stream);
+	p.on('exit', function(err, signal) {
+		if(err)
+			process.exit(1);
+	});
 
-	return objects.pipe(this.jp.map(f));
+	stream.pipe(p.stdin);
+
+	return p.stdout;
 };
 
 SqlUtil.prototype.pipeReduceCmd = function(cmds, ast) {
