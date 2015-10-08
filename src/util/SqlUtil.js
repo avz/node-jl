@@ -45,7 +45,7 @@ SqlUtil.prototype.run = function() {
 	cmds.shift(); // leading |
 
 	var stdin = this.stdin;
-//	stdin = this.pickUsedColumns(ast, stdin);
+	stdin = this.pickUsedColumns(ast, stdin);
 
 	var output = this.runAsSubpipe(stdin, this.stdout, cmds);
 
