@@ -45,7 +45,7 @@ SqlUtil.prototype.run = function() {
 	cmds.shift(); // leading |
 
 	var stdin = this.stdin;
-	stdin = this.pickUsedColumnsJs(ast, stdin);
+	stdin = this.pickUsedColumnsNative(ast, stdin);
 
 	var output = this.runAsSubpipe(stdin, this.stdout, cmds);
 
@@ -70,7 +70,7 @@ SqlUtil.prototype.pickUsedColumnsNative = function(selectAst, stream) {
 
 	var list = Object.keys(pathes);
 
-	var cmd = 'jl-pick';
+	var cmd = __dirname + '/../../node_modules/jl-pick/native/bin/jl-pick';
 
 	var args = [];
 
