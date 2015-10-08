@@ -30,6 +30,9 @@ SqlUtil.prototype.run = function() {
 
 	var cmds = [];
 
+	var stdin = this.stdin;
+	stdin = this.pickUsedColumnsNative(ast, stdin);
+
 	if(js.where)
 		cmds = this.pipeFilterUtil(cmds, js.where);
 
@@ -43,9 +46,6 @@ SqlUtil.prototype.run = function() {
 	}
 
 	cmds.shift(); // leading |
-
-	var stdin = this.stdin;
-	stdin = this.pickUsedColumnsNative(ast, stdin);
 
 	var output = this.runAsSubpipe(stdin, this.stdout, cmds);
 
@@ -71,13 +71,19 @@ SqlUtil.prototype.pickUsedColumnsNative = function(selectAst, stream) {
 	var list = Object.keys(pathes);
 
 	var cmd = __dirname + '/../../node_modules/jl-pick/native/bin/jl-pick';
-
 	var args = [];
 
-	if(this.ignoreJsonParsingError)
-		args.push('-I');
+	if(list.length) {
+		if(this.ignoreJsonParsingError)
+			args.push('-I');
 
-	args = args.concat(list);
+		args = args.concat(list);
+	} else {
+		// Ни одного идентификатора
+		// Это такой кривой костыль, чтобы все строки заменить на пустые объекты
+		cmd = 'awk';
+		args.push('{print "{}"}');
+	}
 
 	var options = {};
 
@@ -423,7 +429,9 @@ SqlUtil.prototype.walkAstNodes = function(ast, nodeType, cb) {
 	var deep = function(expression) {
 		if(expression instanceof nodeType) {
 			cb(expression);
-		} else if(expression && typeof expression === 'object') {
+		}
+
+		if(expression && typeof expression === 'object') {
 			for(var k in expression) {
 				var v = expression[k];
 				deep(v);
