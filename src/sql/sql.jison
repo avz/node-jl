@@ -41,6 +41,7 @@ var nodes = require('./nodes.js');
 "-"					  { return '-'; }
 "/"					  { return '/'; }
 "*"					  { return '*'; }
+"%"					  { return '%'; }
 "="					  { return '='; }
 "("                   { return '('; }
 ")"                   { return ')'; }
@@ -65,7 +66,7 @@ var nodes = require('./nodes.js');
 %left '>' '<'
 
 %left '+' '-'
-%left '*' '/'
+%left '*' '/' '%'
 %left '=' '=='
 %left 'DISTINCT'
 %left 'IN'
@@ -98,6 +99,7 @@ const
 expression
 	: DISTINCT expression       { $$ = new nodes.Distinct($2); }
 	| expression '*' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
+	| expression '%' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
 	| expression '/' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
 	| expression '+' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
 	| expression '-' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
