@@ -21,6 +21,7 @@ require('util').inherits(SqlUtil, require('../Util.js').Util);
 SqlUtil.prototype.run = function() {
 	var jp = this.jp;
 	jp.addEnv(this.aggregationFunctions);
+	jp.addEnv(this.functions);
 
 	var sqlString = this.needArgument(0);
 	var ast = sqlParser.parse(sqlString);
@@ -429,6 +430,110 @@ SqlUtil.prototype.aggregationFunctions = {
 		this.result = function() {
 			return this.last;
 		};
+	}
+};
+
+SqlUtil.formatDate = function(date) {
+	var s =
+		date.getUTCFullYear()
+		+ '-' + (date.getUTCMonth() + 1 + 100).toString().slice(1)
+		+ '-' + (date.getUTCDate() + 100).toString().slice(1)
+	;
+
+	return s;
+};
+
+SqlUtil.formatTime = function(date) {
+	var s =
+		(date.getUTCHours() + 100).toString().slice(1)
+		+ ':' + (date.getUTCMinutes() + 100).toString().slice(1)
+		+ ':' + (date.getUTCSeconds() + 100).toString().slice(1)
+	;
+
+	return s;
+};
+
+SqlUtil.formatDateTime = function(date) {
+	return this.formatDate(date) + ' ' + this.formatTime(date);
+};
+
+SqlUtil.getDate = function(dateOrTime) {
+	var date;
+
+	if(dateOrTime instanceof Date) {
+		date = dateOrTime;
+	} else {
+		var str = '' + dateOrTime;
+
+		if(/^[0-9.]+$/.test(str)) {
+			date = new Date(str * 1000);
+		} else {
+			date = new Date(str);
+		}
+	}
+
+	if(!date.getTime())
+		return null;
+
+	return date;
+};
+
+SqlUtil.unixTimestamp = function(dateOrTime) {
+	var date = this.getDate(dateOrTime);
+
+	return date;
+};
+
+SqlUtil.prototype.functions = {
+	FROM_UNIXTIME: function(unixTimestamp) {
+		var date;
+
+		if(!arguments.length) {
+			date = new Date;
+		} else {
+			date = new Date(unixTimestamp * 1000);
+		}
+
+		if(!date)
+			return null;
+
+		return SqlUtil.formatDateTime(date);
+	},
+	UNIX_TIMESTAMP: function(date) {
+		var d;
+
+		if(!arguments.length) {
+			d = new Date;
+		} else {
+			d = SqlUtil.getDate(date);
+		}
+
+		if(!date)
+			return null;
+
+		return d.getTime() / 1000;
+	},
+	DATE: function(date) {
+		var d;
+
+		if(!arguments.length) {
+			d = new Date;
+		} else {
+			d = SqlUtil.getDate(date);
+		}
+
+		return SqlUtil.formatDate(d);
+	},
+	DATETIME: function(date) {
+		var d;
+
+		if(!arguments.length) {
+			d = new Date;
+		} else {
+			d = SqlUtil.getDate(date);
+		}
+
+		return SqlUtil.formatDateTime(d);
 	}
 };
 
