@@ -508,7 +508,7 @@ SqlUtil.prototype.functions = {
 			d = SqlUtil.getDate(date);
 		}
 
-		if(!date)
+		if(!d)
 			return null;
 
 		return d.getTime() / 1000;
