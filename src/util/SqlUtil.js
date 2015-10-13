@@ -31,12 +31,16 @@ SqlUtil.prototype.run = function() {
 	var cmds = [];
 
 	var stdin = this.stdin;
-	stdin = this.pickUsedColumnsNative(ast, stdin);
+
+	if(ast.columns) {
+		stdin = this.pickUsedColumnsNative(ast, stdin);
+	}
 
 	if(js.where)
 		cmds = this.pipeFilterUtil(cmds, js.where);
 
-	cmds = this.pipeReduceCmd(cmds, ast);
+	if(ast.columns)
+		cmds = this.pipeReduceCmd(cmds, ast);
 
 	if(js.orderBy) {
 		if(ast.orders.length > 1)
@@ -47,9 +51,10 @@ SqlUtil.prototype.run = function() {
 
 	cmds.shift(); // leading |
 
-	var output = this.runAsSubpipe(stdin, this.stdout, cmds);
-
-	return output;
+	if(cmds.length)
+		return this.runAsSubpipe(stdin, this.stdout, cmds);
+	else
+		return stdin;
 };
 
 /**
@@ -64,7 +69,9 @@ SqlUtil.prototype.pickUsedColumnsNative = function(selectAst, stream) {
 	var pathes = {};
 
 	this.walkAstNodes(selectAst, sqlNodes.ColumnIdent, function(ident) {
-		var path = ident.fragments.join('.');
+		var path = ident.fragments.map(function(f) {
+			return f.replace(/([.\\])/g, "\\$1");
+		}).join('.');
 		pathes[path] = path;
 	});
 
