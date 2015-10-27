@@ -166,4 +166,8 @@ GeneratorJs.prototype.Brackets = function(ast) {
 	return '(' + this.fromAst(ast.expression) + ')';
 };
 
+GeneratorJs.prototype.Null = function(ast) {
+	return 'null';
+};
+
 exports.GeneratorJs = GeneratorJs;
