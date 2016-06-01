@@ -25,7 +25,7 @@ GeneratorJs.prototype.fromAst = function(ast, select, unwrapAliases) {
 			}
 
 			if (name === requestedAlias) {
-				return this.fromAst(c.expression);
+				return this.fromAst(c.expression, select, unwrapAliases);
 			}
 		}
 	}
@@ -105,15 +105,15 @@ GeneratorJs.prototype.Select = function(ast) {
 	};
 };
 
-GeneratorJs.prototype.ColumnIdent = function(ast) {
-	return this.ComplexIdent(ast);
+GeneratorJs.prototype.ColumnIdent = function(ast, select, unwrapAliases) {
+	return this.ComplexIdent(ast, select, unwrapAliases);
 };
 
-GeneratorJs.prototype.FunctionIdent = function(ast) {
+GeneratorJs.prototype.FunctionIdent = function(ast, select, unwrapAliases) {
 	return this.functionsNamespace + '[' + ast.fragments.map(JSON.stringify).join('][') + ']';
 };
 
-GeneratorJs.prototype.ComplexIdent = function(ast) {
+GeneratorJs.prototype.ComplexIdent = function(ast, select, unwrapAliases) {
 	this.rowNamespace = 'r';
 
 	var namespace = this.rowNamespace;
@@ -145,26 +145,26 @@ GeneratorJs.prototype.String = function(ast) {
 	return "'" + ast.value + "'";
 };
 
-GeneratorJs.prototype.Call = function(ast) {
-	var n = this.fromAst(ast.function);
+GeneratorJs.prototype.Call = function(ast, select, unwrapAliases) {
+	var n = this.fromAst(ast.function, select, unwrapAliases);
 	var a = [];
 
 	for(var i = 0; i < ast.args.length; i++) {
-		a.push(this.fromAst(ast.args[i]));
+		a.push(this.fromAst(ast.args[i], select, unwrapAliases));
 	}
 
 	return n + '(' + a.join(', ') + ')';
 };
 
-GeneratorJs.prototype.Order = function(ast) {
-	return this.fromAst(ast.expression);
+GeneratorJs.prototype.Order = function(ast, select, unwrapAliases) {
+	return this.fromAst(ast.expression, select, unwrapAliases);
 };
 
-GeneratorJs.prototype.UnaryOperation = function(ast) {
-	return ast.operator + '' + this.fromAst(ast.right);
+GeneratorJs.prototype.UnaryOperation = function(ast, select, unwrapAliases) {
+	return ast.operator + '' + this.fromAst(ast.right, select, unwrapAliases);
 };
 
-GeneratorJs.prototype.BinaryOperation = function(ast) {
+GeneratorJs.prototype.BinaryOperation = function(ast, select, unwrapAliases) {
 	var map = {
 		AND: '&&',
 		OR: '||',
@@ -173,26 +173,26 @@ GeneratorJs.prototype.BinaryOperation = function(ast) {
 
 	var op = map[ast.operator] ? map[ast.operator] : ast.operator;
 
-	return this.fromAst(ast.left) + ' ' + op + ' ' + this.fromAst(ast.right);
+	return this.fromAst(ast.left, select, unwrapAliases) + ' ' + op + ' ' + this.fromAst(ast.right, select, unwrapAliases);
 };
 
-GeneratorJs.prototype.In = function(ast) {
+GeneratorJs.prototype.In = function(ast, select, unwrapAliases) {
 	var w = [];
 	var n = this.fromAst(ast.needle);
 
 	for(var i = 0; i < ast.haystack.length; i++) {
 		var e = ast.haystack[i];
-		w.push(n + ' == ' + this.fromAst(e));
+		w.push(n + ' == ' + this.fromAst(e, select, unwrapAliases));
 	}
 
 	return '(' + w.join(' || ') + ')';
 };
 
-GeneratorJs.prototype.Brackets = function(ast) {
-	return '(' + this.fromAst(ast.expression) + ')';
+GeneratorJs.prototype.Brackets = function(ast, select, unwrapAliases) {
+	return '(' + this.fromAst(ast.expression, select, unwrapAliases) + ')';
 };
 
-GeneratorJs.prototype.Null = function(ast) {
+GeneratorJs.prototype.Null = function(ast, select, unwrapAliases) {
 	return 'null';
 };
 
