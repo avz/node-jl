@@ -24,8 +24,8 @@ GeneratorJs.prototype.fromAst = function(ast, select, unwrapAliases) {
 				continue;
 			}
 
-			if (name === requestedAlias) {
-				return this.fromAst(c.expression, select, unwrapAliases);
+			if (name === requestedAlias && ast !== c.expression) {
+				return this.fromAst(c.expression, select);
 			}
 		}
 	}
