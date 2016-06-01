@@ -168,10 +168,12 @@ SqlUtil.prototype.pickUsedColumnsJs = function(selectAst, stream) {
 
 SqlUtil.prototype.pipeReduceCmd = function(cmds, ast) {
 	var aggregation = {
-		init: 'this.aggregations = [];\n',
+		init: 'this.aggregations = {};\n',
 		update: '',
 		result: 'env._aggregations = this.aggregations;\nreturn {'
 	};
+
+	cmds = this.pipeMakeAliasesTransform(cmds, ast);
 
 	var valuesWithoutAggregationSource = 'return {';
 
@@ -184,14 +186,14 @@ SqlUtil.prototype.pipeReduceCmd = function(cmds, ast) {
 		if(columnName === null)
 			columnName = 'col_' + i;
 
-		var agg = this.extractAggregation(columnName, c.expression);
+		var agg = this.prepareToAggregation(columnName, c.expression);
 
 		if(agg) {
 			hasRealAggregations = true;
 		} else {
 			valuesWithoutAggregationSource += JSON.stringify(columnName) + ': ' + this.generator.fromAst(c.expression) + ', '
 
-			agg = this.extractAggregation(
+			agg = this.prepareToAggregation(
 				columnName,
 				new sqlNodes.Call(
 					new sqlNodes.FunctionIdent({fragments: ['LAST']}),
@@ -208,7 +210,7 @@ SqlUtil.prototype.pipeReduceCmd = function(cmds, ast) {
 	aggregation.result += '};';
 	valuesWithoutAggregationSource += '};';
 
-	if(hasRealAggregations) {
+	if(hasRealAggregations || ast.groups.length) {
 		// юзаем jl-reduce
 		var js = this.generator.fromAst(ast);
 		var keyGenerator;
@@ -239,7 +241,23 @@ SqlUtil.prototype.pipeReduceCmd = function(cmds, ast) {
 	}
 };
 
-SqlUtil.prototype.extractAggregation = function(ident, expression) {
+SqlUtil.prototype.hasAggregations = function(expression) {
+	var self = this;
+	var has = 0;
+
+	this.walkAstNodes(expression, sqlNodes.Call, function(expression) {
+		var name = expression.function.fragments.join('.');
+		var af = self.aggregationFunctions[name];
+
+		if (af) {
+			has = true;
+		}
+	});
+
+	return has;
+};
+
+SqlUtil.prototype.prepareToAggregation = function(ident, expression) {
 	var identJson = JSON.stringify(ident);
 	var self = this;
 	var aggregationList = [];
@@ -274,7 +292,7 @@ SqlUtil.prototype.extractAggregation = function(ident, expression) {
 		updates.push(
 			'this.aggregations[' + identJson + '][' + i + '].update('
 			+ af.args.map(this.generator.fromAst.bind(this.generator)).join(', ')
-			+ ')'
+			+ ');'
 		);
 	}
 
@@ -315,6 +333,47 @@ SqlUtil.prototype.pipeFilterUtil = function(args, filter) {
 	options.push('{' + this.functionGetSource(filter) + '}');
 
 	return args.concat(options);
+};
+
+/**
+ * Добавить jl-transform, если есть поля с альясами. Это нужно, чтобы правильно
+ * работала шруппировка и сортировка по альясам
+ * @param {Array} cmds
+ * @param {type} ast
+ * @returns {Array}
+ */
+SqlUtil.prototype.pipeMakeAliasesTransform = function(cmds, ast) {
+	var transformColumns = [];
+
+	for(var i = 0; i < ast.columns.length; i++) {
+		var c = ast.columns[i];
+
+		var columnName = this.generator.getColumnName(c);
+
+		if(columnName === null) {
+			columnName = 'col_' + i;
+		}
+
+		if (this.hasAggregations(c.expression)) {
+			continue;
+		}
+
+		var expressionJs = this.generator.fromAst(c.expression);
+		var targetJs = 'r[' + JSON.stringify(columnName) + ']';
+
+		if (targetJs !== expressionJs) {
+			transformColumns.push(targetJs + ' = ' + expressionJs + ';');
+		}
+	}
+
+	if (transformColumns.length) {
+		return cmds.concat([
+			'|', 'jl-transform',
+			'{' + transformColumns.join() + '}'
+		]);
+	}
+
+	return cmds;
 };
 
 SqlUtil.prototype.aggregationFunctions = {
