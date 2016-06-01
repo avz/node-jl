@@ -15,7 +15,13 @@ function ArgFunction(string, args, defaultVariableName, options) {
 	var m = string.match(/^\s*\{([\s\S]*)\}\s*$/);
 	if(m) {
 		// просто вариант - юзер указал весь код функции целиком
-		return new Function(args.join(','), m[1] + (options.suffix || ''));
+		var code = m[1] + (options.suffix || '');
+
+		try {
+			return new Function(args.join(','), code);
+		} catch (e) {
+			throw new Error(e.message + ': ' + code);
+		}
 	}
 
 	/*
