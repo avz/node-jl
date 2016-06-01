@@ -447,6 +447,10 @@ SqlUtil.prototype.aggregationFunctions = {
 };
 
 SqlUtil.formatDate = function(date) {
+	if (!date) {
+		return null;
+	}
+
 	var s =
 		date.getUTCFullYear()
 		+ '-' + (date.getUTCMonth() + 1 + 100).toString().slice(1)
@@ -457,6 +461,10 @@ SqlUtil.formatDate = function(date) {
 };
 
 SqlUtil.formatTime = function(date) {
+	if (!date) {
+		return null;
+	}
+
 	var s =
 		(date.getUTCHours() + 100).toString().slice(1)
 		+ ':' + (date.getUTCMinutes() + 100).toString().slice(1)
@@ -467,6 +475,10 @@ SqlUtil.formatTime = function(date) {
 };
 
 SqlUtil.formatDateTime = function(date) {
+	if (!date) {
+		return null;
+	}
+
 	return this.formatDate(date) + ' ' + this.formatTime(date);
 };
 
