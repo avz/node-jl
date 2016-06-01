@@ -45,7 +45,7 @@ ReduceUtil.prototype.run = function() {
 			for(var i = 0; i < chunk.length; i++) {
 				var item = chunk[i];
 
-				var groupKey = getGroupKey(item);
+				var groupKey = getGroupKey(item, jp.env);
 
 				if(group) {
 					if(group.key !== groupKey) {
