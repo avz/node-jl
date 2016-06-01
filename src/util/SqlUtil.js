@@ -205,9 +205,6 @@ SqlUtil.prototype.pipeReduceCmd = function(cmds, ast) {
 		aggregation.result += JSON.stringify(columnName) + ': ' + agg.result + ', ';
 	}
 
-	if(ast.groups.length && !hasRealAggregations)
-		throw new Error('GROUP BY without aggregation functions');
-
 	aggregation.result += '};';
 	valuesWithoutAggregationSource += '};';
 
