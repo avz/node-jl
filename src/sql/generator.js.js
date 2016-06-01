@@ -3,13 +3,25 @@ function GeneratorJs(rowNamespace, functionsNamespace) {
 	this.functionsNamespace = functionsNamespace;
 };
 
-GeneratorJs.prototype.fromAst = function(ast) {
+GeneratorJs.prototype.fromAst = function(ast, select, unwrapAliases) {
 	var type = ast.getNodeType();
 
 	if(!this[type])
 		throw new Error('Unknown node type: ' + type);
 
-	return this[type](ast);
+	if (type === 'ColumnIdent' && unwrapAliases && select) {
+		for (var i = 0; i < select.columns.length; i++) {
+			var c = select.columns[i];
+
+			if (!c.alias) {
+				continue;
+			}
+
+			return this.fromAst(c.expression);
+		}
+	}
+
+	return this[type](ast, select, unwrapAliases);
 };
 
 GeneratorJs.prototype.getColumnName = function(ast) {
@@ -23,6 +35,7 @@ GeneratorJs.prototype.getColumnName = function(ast) {
 };
 
 GeneratorJs.prototype.Select = function(ast) {
+	var self = this;
 	var args = [this.rowNamespace, this.functionsNamespace];
 
 	var columnNamesArray = [];
@@ -31,6 +44,10 @@ GeneratorJs.prototype.Select = function(ast) {
 	var valuesArrayFunction;
 	var valuesObjectFunction;
 
+	var fromAstUnwrappedBinded = function(childAst) {
+		return self.fromAst(childAst, ast, true);
+	};
+
 	if(ast.columns) {
 		var columnValuesArrayCode = [];
 
@@ -38,7 +55,7 @@ GeneratorJs.prototype.Select = function(ast) {
 			var c = ast.columns[i];
 
 			var name = '' + (this.getColumnName(c) || i);
-			var code = this.fromAst(c.expression);
+			var code = this.fromAst(c.expression, ast);
 
 			columnNamesArray.push(name + '');
 			columnValuesArrayCode.push(code);
@@ -57,14 +74,14 @@ GeneratorJs.prototype.Select = function(ast) {
 	var groupByFunctionJson = null;
 
 	if(ast.groups.length) {
-		groupByFunction = new Function(args, 'return [' + ast.groups.map(this.fromAst.bind(this)).join(', ') + '];');
-		groupByFunctionJson = new Function(args, 'return JSON.stringify([' + ast.groups.map(this.fromAst.bind(this)).join(', ') + ']);');
+		groupByFunction = new Function(args, 'return [' + ast.groups.map(fromAstUnwrappedBinded).join(', ') + '];');
+		groupByFunctionJson = new Function(args, 'return JSON.stringify([' + ast.groups.map(fromAstUnwrappedBinded).join(', ') + ']);');
 	}
 
 	var orderByFunction = null;
 
 	if(ast.orders.length)
-		orderByFunction = new Function(args, 'return [' + ast.orders.map(this.fromAst.bind(this)).join(', ') + '];');
+		orderByFunction = new Function(args, 'return [' + ast.orders.map(fromAstUnwrappedBinded).join(', ') + '];');
 
 	return {
 		row: {
@@ -72,7 +89,7 @@ GeneratorJs.prototype.Select = function(ast) {
 			valuesArray: valuesArrayFunction,
 			valuesObject: valuesObjectFunction
 		},
-		where: ast.where ? new Function(args, 'return ' + this.fromAst(ast.where) + ';') : null,
+		where: ast.where ? new Function(args, 'return ' + fromAstUnwrappedBinded(ast.where) + ';') : null,
 		groupBy: groupByFunction,
 		groupByJson: groupByFunctionJson,
 		orderBy: orderByFunction

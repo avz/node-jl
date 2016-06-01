@@ -173,8 +173,6 @@ SqlUtil.prototype.pipeReduceCmd = function(cmds, ast) {
 		result: 'env._aggregations = this.aggregations;\nreturn {'
 	};
 
-	cmds = this.pipeMakeAliasesTransform(cmds, ast);
-
 	var valuesWithoutAggregationSource = 'return {';
 
 	var hasRealAggregations = false;
@@ -333,47 +331,6 @@ SqlUtil.prototype.pipeFilterUtil = function(args, filter) {
 	options.push('{' + this.functionGetSource(filter) + '}');
 
 	return args.concat(options);
-};
-
-/**
- * Добавить jl-transform, если есть поля с альясами. Это нужно, чтобы правильно
- * работала шруппировка и сортировка по альясам
- * @param {Array} cmds
- * @param {type} ast
- * @returns {Array}
- */
-SqlUtil.prototype.pipeMakeAliasesTransform = function(cmds, ast) {
-	var transformColumns = [];
-
-	for(var i = 0; i < ast.columns.length; i++) {
-		var c = ast.columns[i];
-
-		var columnName = this.generator.getColumnName(c);
-
-		if(columnName === null) {
-			columnName = 'col_' + i;
-		}
-
-		if (this.hasAggregations(c.expression)) {
-			continue;
-		}
-
-		var expressionJs = this.generator.fromAst(c.expression);
-		var targetJs = 'r[' + JSON.stringify(columnName) + ']';
-
-		if (targetJs !== expressionJs) {
-			transformColumns.push(targetJs + ' = ' + expressionJs + ';');
-		}
-	}
-
-	if (transformColumns.length) {
-		return cmds.concat([
-			'|', 'jl-transform',
-			'{' + transformColumns.join() + '}'
-		]);
-	}
-
-	return cmds;
 };
 
 SqlUtil.prototype.aggregationFunctions = {
