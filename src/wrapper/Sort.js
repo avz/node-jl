@@ -5,13 +5,6 @@ var ChildProcessFifos = require('./ChildProcessFifos.js').ChildProcessFifos;
 function Sort(streams, options) {
 	options = options || {};
 
-	var list;
-
-	if(streams instanceof Array)
-		list = streams;
-	else
-		list = [streams];
-
 	var sortCmd = options.path || 'sort';
 
 	var argsHash = {
