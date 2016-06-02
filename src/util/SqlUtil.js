@@ -559,6 +559,23 @@ SqlUtil.prototype.functions = {
 		}
 
 		return SqlUtil.formatDateTime(d);
+	},
+	COALESCE: function(arg1 /* ... */) {
+		if (arg1 || (arg1 !== null && arg1 !== undefined)) {
+			// оптимизированный вариант для частого кейса
+
+			return arg1;
+		}
+
+		for (var i = 1; i < arguments.length; i++) {
+			var a = arguments[i];
+
+			if (a !== null && a !== undefined) {
+				return a;
+			}
+		}
+
+		return null;
 	}
 };
 
