@@ -1,6 +1,6 @@
 {
 	"name": "jl",
-	"version": "2.3.3",
+	"version": "2.3.4",
 	"description": "Command-line JSON manipulation library",
 	"keywords": [
 		"json",
