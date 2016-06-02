@@ -50,6 +50,7 @@ var nodes = require('./nodes.js');
 "AND"                 { return 'AND'; }
 "OR"                  { return 'OR'; }
 "."                   { return '.'; }
+"!="                  { return '!='; }
 
 \`(\\.|[^\\`])*\`     { return 'IDENT'; }
 ([a-z_][a-z0-9_-]*)   { return 'IDENT'; }
@@ -67,7 +68,7 @@ var nodes = require('./nodes.js');
 
 %left '+' '-'
 %left '*' '/' '%'
-%left '=' '=='
+%left '=' '==' '!='
 %left 'DISTINCT'
 %left 'IN'
 %left '.'
@@ -104,6 +105,7 @@ expression
 	| expression '+' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
 	| expression '-' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
 	| expression '=' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
+	| expression '!=' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
 	| expression 'AND' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
 	| expression 'OR' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
 	| expression '>' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
