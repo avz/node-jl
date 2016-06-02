@@ -23,7 +23,7 @@ JP.prototype._createObjectsTransform = function(type, constElements, options) {
 
 	var to = {
 		objectMode: true,
-		highWaterMark: self.objectStreamHighWaterMark
+//		highWaterMark: self.objectStreamHighWaterMark
 	};
 
 	if(options) {
