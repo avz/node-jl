@@ -107,7 +107,7 @@ SqlUtil.prototype.pickUsedColumnsNative = function(selectAst, stream) {
 		options
 	);
 
-	p.on('exit', function(err, signal) {
+	p.on('close', function(err, signal) {
 		if(err)
 			process.exit(1);
 	});
