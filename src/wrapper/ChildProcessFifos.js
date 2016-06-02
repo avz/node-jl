@@ -62,15 +62,13 @@ ChildProcessFifos.prototype._runFifos = function(streams, cmd, args, options) {
 			fullArgs.push(p);
 		}
 
-//		console.error(cmd, fullArgs);
-
 		proc = require('child_process').spawn(
 			cmd,
 			fullArgs,
 			options
 		);
 
-		proc.on('exit', clearFifos);
+		proc.on('close', clearFifos);
 
 		return proc;
 	} catch(e) {
