@@ -51,6 +51,7 @@ var nodes = require('./nodes.js');
 "OR"                  { return 'OR'; }
 "."                   { return '.'; }
 "!="                  { return '!='; }
+"!"                  { return '!'; }
 
 \`(\\.|[^\\`])*\`     { return 'IDENT'; }
 ([a-z_][a-z0-9_-]*)   { return 'IDENT'; }
@@ -71,7 +72,7 @@ var nodes = require('./nodes.js');
 %left '=' '==' '!='
 %left 'DISTINCT'
 %left 'IN'
-%left '.'
+%left '.' '!'
 
 %start expressions
 
@@ -111,6 +112,7 @@ expression
 	| expression '>' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
 	| expression '<' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
 	| '-' expression { $$ = new nodes.UnaryOperation($1, $2); }
+	| '!' expression { $$ = new nodes.UnaryOperation($1, $2); }
 	| expression 'IN' '(' expressionsList ')' { $$ = new nodes.In($1, $4); }
 	| complexIdent '(' expressionsList ')' { $$ = new nodes.Call(new nodes.FunctionIdent($1), $3); }
 	| complexIdent '(' ')' { $$ = new nodes.Call(new nodes.FunctionIdent($1), []); }
