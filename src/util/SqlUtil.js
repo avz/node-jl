@@ -576,6 +576,9 @@ SqlUtil.prototype.functions = {
 		}
 
 		return null;
+	},
+	IF: function(bool, onTrue, onFalse) {
+		return bool ? onTrue : onFalse;
 	}
 };
 
