@@ -213,8 +213,10 @@ JP.prototype.toChunks = function(chunkSize) {
 	var flusher = null;
 
 	var flush = function() {
-		if(flusher)
+		if(flusher) {
 			clearImmediate(flusher);
+			flusher = null
+		}
 
 		if(!chunk.length)
 			return;
@@ -224,8 +226,9 @@ JP.prototype.toChunks = function(chunkSize) {
 	};
 
 	var touchScheduler = function() {
-		if(!flusher)
+		if(!flusher) {
 			flusher = setImmediate(flush);
+		}
 	};
 
 	transform._transform = function(item, encoding, callback) {
@@ -233,11 +236,11 @@ JP.prototype.toChunks = function(chunkSize) {
 
 		if(chunk.length > chunkSize) {
 			flush();
-			setImmediate(callback);
 		} else {
 			touchScheduler();
-			callback();
 		}
+
+		callback();
 	};
 
 	transform._flush = flush;
@@ -270,7 +273,10 @@ JP.prototype.jsonParse = function(parsingErrorHandler) {
 			result.push(o);
 		}
 
-		this.push(result);
+		if (result.length) {
+			this.push(result);
+		}
+
 		callback();
 	};
 
