@@ -14,6 +14,8 @@ var nodes = require('./nodes.js');
 \s+                   {}
 ","                   { return ','; }
 "NULL"                { return 'NULL'; }
+"TRUE"                { return 'TRUE'; }
+"FALSE"                { return 'FALSE'; }
 "SELECT"              { return 'SELECT'; }
 "FROM"                { return 'FROM'; }
 "DISTINCT"            { return 'DISTINCT'; }
@@ -98,6 +100,8 @@ const
 	: 'STRING' { $$ = new nodes.String($1); }
 	| number   { $$ = $1; }
 	| 'NULL'   { $$ = new nodes.Null(); }
+	| 'TRUE'   { $$ = new nodes.Boolean(true); }
+	| 'FALSE'   { $$ = new nodes.Boolean(false); }
 ;
 
 expression

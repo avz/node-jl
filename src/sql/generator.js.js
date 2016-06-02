@@ -141,6 +141,10 @@ GeneratorJs.prototype.Number = function(ast) {
 	return ast.value + '';
 };
 
+GeneratorJs.prototype.Boolean = function(ast) {
+	return ast.value ? 'true' : 'false';
+};
+
 GeneratorJs.prototype.String = function(ast) {
 	return "'" + ast.value + "'";
 };

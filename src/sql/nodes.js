@@ -34,6 +34,14 @@ util.inherits(Number, InspectableNode);
 
 exports.Number = Number;
 
+function Boolean(value) {
+	this.value = !!value;
+};
+
+util.inherits(Boolean, InspectableNode);
+
+exports.Boolean = Boolean;
+
 function String(string) {
 	this.value = string.substr(1, string.length - 2);
 };
