@@ -96,6 +96,16 @@ util.inherits(BinaryOperation, InspectableNode);
 
 exports.BinaryOperation = BinaryOperation;
 
+function ComparsionOperation(operator, left, right) {
+	this.operator = operator;
+	this.left = left;
+	this.right = right;
+};
+
+util.inherits(ComparsionOperation, InspectableNode);
+
+exports.ComparsionOperation = ComparsionOperation;
+
 function UnaryOperation(operator, right) {
 	this.operator = operator;
 	this.right = right;

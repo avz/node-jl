@@ -55,7 +55,9 @@ var nodes = require('./nodes.js');
 "<"					  { return '<'; }
 ">"					  { return '>'; }
 "AND"                 { return 'AND'; }
+"&&"                  { return 'AND'; }
 "OR"                  { return 'OR'; }
+"||"                  { return 'OR'; }
 "."                   { return '.'; }
 "!="				  { return '!='; }
 "!"					  { return '!'; }
@@ -114,16 +116,16 @@ expression
 	| expression '/' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
 	| expression '+' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
 	| expression '-' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
-	| expression '=' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
-	| expression '!==' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
-	| expression '===' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
-	| expression '!=' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
-	| expression 'AND' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
-	| expression 'OR' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
-	| expression '>' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
-	| expression '>=' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
-	| expression '<' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
-	| expression '<=' expression { $$ = new nodes.BinaryOperation($2, $1, $3); }
+	| expression '=' expression { $$ = new nodes.ComparsionOperation($2, $1, $3); }
+	| expression '!==' expression { $$ = new nodes.ComparsionOperation($2, $1, $3); }
+	| expression '===' expression { $$ = new nodes.ComparsionOperation($2, $1, $3); }
+	| expression '!=' expression { $$ = new nodes.ComparsionOperation($2, $1, $3); }
+	| expression 'AND' expression { $$ = new nodes.ComparsionOperation($2, $1, $3); }
+	| expression 'OR' expression { $$ = new nodes.ComparsionOperation($2, $1, $3); }
+	| expression '>' expression { $$ = new nodes.ComparsionOperation($2, $1, $3); }
+	| expression '>=' expression { $$ = new nodes.ComparsionOperation($2, $1, $3); }
+	| expression '<' expression { $$ = new nodes.ComparsionOperation($2, $1, $3); }
+	| expression '<=' expression { $$ = new nodes.ComparsionOperation($2, $1, $3); }
 	| '-' expression { $$ = new nodes.UnaryOperation($1, $2); }
 	| '!' expression { $$ = new nodes.UnaryOperation($1, $2); }
 	| expression 'IN' '(' expressionsList ')' { $$ = new nodes.In($1, $4); }

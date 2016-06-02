@@ -169,6 +169,10 @@ GeneratorJs.prototype.UnaryOperation = function(ast, select, unwrapAliases) {
 };
 
 GeneratorJs.prototype.BinaryOperation = function(ast, select, unwrapAliases) {
+	return this.fromAst(ast.left, select, unwrapAliases) + ' ' + ast.operator + ' ' + this.fromAst(ast.right, select, unwrapAliases);
+};
+
+GeneratorJs.prototype.ComparsionOperation = function(ast, select, unwrapAliases) {
 	var map = {
 		AND: '&&',
 		OR: '||',
@@ -177,7 +181,7 @@ GeneratorJs.prototype.BinaryOperation = function(ast, select, unwrapAliases) {
 
 	var op = map[ast.operator] ? map[ast.operator] : ast.operator;
 
-	return this.fromAst(ast.left, select, unwrapAliases) + ' ' + op + ' ' + this.fromAst(ast.right, select, unwrapAliases);
+	return '!!'  + '(' + this.fromAst(ast.left, select, unwrapAliases) + ' ' + op + ' ' + this.fromAst(ast.right, select, unwrapAliases) + ')';
 };
 
 GeneratorJs.prototype.In = function(ast, select, unwrapAliases) {

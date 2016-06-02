@@ -116,8 +116,11 @@ break;
 case 11:
  this.$ = new nodes.Distinct($$[$0]); 
 break;
-case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 19: case 20: case 21: case 22: case 23: case 24: case 25: case 26:
+case 12: case 13: case 14: case 15: case 16:
  this.$ = new nodes.BinaryOperation($$[$0-1], $$[$0-2], $$[$0]); 
+break;
+case 17: case 18: case 19: case 20: case 21: case 22: case 23: case 24: case 25: case 26:
+ this.$ = new nodes.ComparsionOperation($$[$0-1], $$[$0-2], $$[$0]); 
 break;
 case 27: case 28:
  this.$ = new nodes.UnaryOperation($$[$0-1], $$[$0]); 
@@ -791,24 +794,28 @@ case 42: return 30;
 break;
 case 43: return 28; 
 break;
-case 44: return 29; 
+case 44: return 28; 
 break;
-case 45: return 9; 
+case 45: return 29; 
 break;
-case 46: return 27; 
+case 46: return 29; 
 break;
-case 47: return 34; 
+case 47: return 9; 
 break;
-case 48: return 7; 
+case 48: return 27; 
 break;
-case 49: return 7; 
+case 49: return 34; 
 break;
-case 50: return 5; 
+case 50: return 7; 
+break;
+case 51: return 7; 
+break;
+case 52: return 5; 
 break;
 }
 },
-rules: [/^(?:\s+)/i,/^(?:,)/i,/^(?:NULL\b)/i,/^(?:TRUE\b)/i,/^(?:FALSE\b)/i,/^(?:SELECT\b)/i,/^(?:FROM\b)/i,/^(?:DISTINCT\b)/i,/^(?:NUMERIC\b)/i,/^(?:WHERE\b)/i,/^(?:ORDER\b)/i,/^(?:GROUP\b)/i,/^(?:BY\b)/i,/^(?:HAVING\b)/i,/^(?:COUNT\b)/i,/^(?:LIMIT\b)/i,/^(?:OFFSET\b)/i,/^(?:LEFT\b)/i,/^(?:INNER\b)/i,/^(?:"(\\.|[^\\"])*")/i,/^(?:'(\\.|[^\\'])*')/i,/^(?:[+-]?[0-9][0-9.]*)/i,/^(?:AS\b)/i,/^(?:ASC\b)/i,/^(?:DESC\b)/i,/^(?:IN\b)/i,/^(?:ON\b)/i,/^(?:JOIN\b)/i,/^(?:\+)/i,/^(?:-)/i,/^(?:\/)/i,/^(?:\*)/i,/^(?:%)/i,/^(?:===)/i,/^(?:!==)/i,/^(?:==)/i,/^(?:=)/i,/^(?:\()/i,/^(?:\))/i,/^(?:<=)/i,/^(?:>=)/i,/^(?:<)/i,/^(?:>)/i,/^(?:AND\b)/i,/^(?:OR\b)/i,/^(?:\.)/i,/^(?:!=)/i,/^(?:!)/i,/^(?:`(\\.|[^\\`])*`)/i,/^(?:([a-z_][a-z0-9_-]*))/i,/^(?:$)/i],
-conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50],"inclusive":true}}
+rules: [/^(?:\s+)/i,/^(?:,)/i,/^(?:NULL\b)/i,/^(?:TRUE\b)/i,/^(?:FALSE\b)/i,/^(?:SELECT\b)/i,/^(?:FROM\b)/i,/^(?:DISTINCT\b)/i,/^(?:NUMERIC\b)/i,/^(?:WHERE\b)/i,/^(?:ORDER\b)/i,/^(?:GROUP\b)/i,/^(?:BY\b)/i,/^(?:HAVING\b)/i,/^(?:COUNT\b)/i,/^(?:LIMIT\b)/i,/^(?:OFFSET\b)/i,/^(?:LEFT\b)/i,/^(?:INNER\b)/i,/^(?:"(\\.|[^\\"])*")/i,/^(?:'(\\.|[^\\'])*')/i,/^(?:[+-]?[0-9][0-9.]*)/i,/^(?:AS\b)/i,/^(?:ASC\b)/i,/^(?:DESC\b)/i,/^(?:IN\b)/i,/^(?:ON\b)/i,/^(?:JOIN\b)/i,/^(?:\+)/i,/^(?:-)/i,/^(?:\/)/i,/^(?:\*)/i,/^(?:%)/i,/^(?:===)/i,/^(?:!==)/i,/^(?:==)/i,/^(?:=)/i,/^(?:\()/i,/^(?:\))/i,/^(?:<=)/i,/^(?:>=)/i,/^(?:<)/i,/^(?:>)/i,/^(?:AND\b)/i,/^(?:&&)/i,/^(?:OR\b)/i,/^(?:\|\|)/i,/^(?:\.)/i,/^(?:!=)/i,/^(?:!)/i,/^(?:`(\\.|[^\\`])*`)/i,/^(?:([a-z_][a-z0-9_-]*))/i,/^(?:$)/i],
+conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52],"inclusive":true}}
 });
 return lexer;
 })();
