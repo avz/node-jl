@@ -9,7 +9,7 @@ GeneratorJs.prototype.fromAst = function(ast, select, unwrapAliases) {
 	if(!this[type])
 		throw new Error('Unknown node type: ' + type);
 
-	if (type === 'ColumnIdent' && unwrapAliases && select) {
+	if (type === 'ColumnIdent' && unwrapAliases && select && select.columns) {
 		var requestedAlias = ast.fragments.join('.');
 
 		for (var i = 0; i < select.columns.length; i++) {
