@@ -579,6 +579,18 @@ SqlUtil.prototype.functions = {
 	},
 	IF: function(bool, onTrue, onFalse) {
 		return bool ? onTrue : onFalse;
+	},
+	STRING: function(value) {
+		return '' + value;
+	},
+	NUMBER: function(value) {
+		var n = +value;
+
+		if (isNaN(n)) {
+			return null;
+		}
+
+		return n;
 	}
 };
 
