@@ -1,20 +1,22 @@
 node-jl
 =====
 
-Набор утилит для работы с файлами/потоками, содержащими JSON-записи, разделённые символом перевода строки (`\n`).
-JSON-представление каждой записи не должно иметь переводов строки.
+([Russian translation](README-RU.md))
 
-Установка
+Utility kit for working with JSON files/streams divided by `\n.` symbol.
+JSON-representation of each record shouldn't contain line breaking symbol.
+
+Install
 -----
 
 ```
 npm install -g jl
 ```
 
-Примеры использования
+Examples
 -----
 
-Имеет лог-файл `/tmp/test.json`, содержащий такие записи
+We have a log file `/tmp/test.json`, that contains next records
 ```json
 {"ts": 1416595508, "type": "click"}
 {"ts": 1416478467, "type": "buy", "price": 10}
@@ -28,32 +30,32 @@ npm install -g jl
 {"ts": 1416682270, "type": "click"}
 ```
 
-### SQL-интерфейс
+### SQL-interface
 
-Утилита `jl-sql` поддерживает язык запросов, очень похожий на SQL
+`jl-sql` utility supports query language very similar to SQL
 ```sh
 cat /tmp/test.json \
-	| jl-sql 'SELECT type, COUNT(*) AS c, SUM(price) AS sum GROUP BY type ORDER BY c NUMERIC DESC'
+    | jl-sql 'SELECT type, COUNT(*) AS c, SUM(price) AS sum GROUP BY type ORDER BY c NUMERIC DESC'
 ```
 ```json
 {"type":"click","c":8,"sum":0}
 {"type":"buy","c":2,"sum":30}
 ```
 
-Как видим, на выходе получаем ровно то, что ожидаем.
+As you can see we receive that we expect.
 
-Обратите внимание на нестандартное ключевое слово `NUMERIC` в `ORDER BY`:
-без него сортировка будет идти не по числовому значению поля, а по его строковому представлению.
+Please note non-standard keyword `NUMERIC` after `ORDER BY`:
+without this keyword, sorting will be by string representation, not by numerical value.
 
-#### Константы
+#### Constants
 
 - `NULL`
 - `TRUE`
 - `FALSE`
 
-#### Операторы
+#### Operators
 
-##### Арифметические
+##### Arithmetic
 
 - `+`
 - `-`
@@ -61,89 +63,88 @@ cat /tmp/test.json \
 - `/`
 - `%`
 
-##### Сравнения
+##### Comparison
 
 - `=`, `==`
 - `!=`
-- `===` - сравнение с учётом типов операндов
-- `!==` - отрицательное сравнение с учётом типов операндов
+- `===` - Comparison with type check
+- `!==` - Negative comparison with type check
 - `>`
 - `<`
 - `>=`
 - `<=`
 
-##### Логические
+##### Logical
 
 - `AND`, `&&`
 - `OR`, `||`
 - `!`
 
-#### Функции
+#### Functions
 
-##### Функции для работы с датами
+##### Functions for working with data
 
-- `FROM_UNIXTIME(unixTimestamp)` - конвертирует unix timestamp в дату
-- `UNIX_TIMESTAMP(date)` - конвертирует дату в unix timestamp, дата может быть строкой формата `'YYYY-MM-DD hh:mm:ss'`
-- `DATE(date)` - возвращает дату в формате `'YYYY-MM-DD'`
+- `FROM_UNIXTIME(unixTimestamp)` - converts unix timestamp to Date
+- `UNIX_TIMESTAMP(date)` - converts Date to unix timestamp, date should be string in `'YYYY-MM-DD hh:mm:ss'` format
+- `DATE(date)` - returns date in `'YYYY-MM-DD'` format
 
-##### Разное
+##### Misc
 
 - `IF(expression, ifTrue, ifFalse)`
 - `COALESCE(expression1[, expression2[, ...]])`
 
-##### Агрегирующие
+##### Aggregating
 
-На данный момент поддерживаются только самые базовые агрегирующие функции:
+Right now, only very basic aggregating functions supported:
 
- - `SUM(expression)` - считает сумму значений поля. Нечисловые начения пропускаются
- - `MIN(expression)` - считает минимальное значение поля. Нечисловые начения пропускаются
- - `MAX(expression)` - считает максимальное значение поля. Нечисловые начения пропускаются
- - `COUNT(expression)` - считает количество элементов, значение `expression` для который !== null и !== undefined
- - `COUNT(*)` - считает количество элементов
- - `HLL_COUNT_DISTINCT(arg1[, args2[, ...]])` - считает количество уникальных комбинаций аргументов. Потреляет `O(1)` памяти и `O(N)`
-вычислительной сложности, но даёт результат со стандартной ошибку 0.1%. Для подробностей можно почитать про алгоритм HyperLogLog
+ - `SUM(expression)` - counts summary of field's values. Non-numerical values will be ignored
+ - `MIN(expression)` - returns minimal field's value. Non-numerical values will be ignored
+ - `MAX(expression)` - returns maximal field's value. Non-numerical values will be ignored
+ - `COUNT(expression)` - counts amount of elements for which comparison with `expression` will be !== null or !== undefined
+ - `COUNT(*)` - counts amount of elements
+ - `HLL_COUNT_DISTINCT(arg1[, args2[, ...]])` - counts amount of unique argument combinations. Uses `O(1)` of memory and `O(N)` of CPU, but returns result with 0.1% error. For more information read [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog) algorithm.
 
-#### Ограничния
+#### Restrictions
 
- - нет и, скорее всего, никогда не будет `JOIN`
- - не поддерживается сортировка по нескольким полям одновременно
- - не поддерживается `LIMIT`, но его легко заменить обычными `head` и `tail`
+ - `JOIN` is not supported(and probably never will be)
+ - Sorting by multiple fields is not supported
+ - `LIMIT` is not supported, but could be replaced with `head` and `tail`
 
-### Низкоуровневый интерфейс
+### Low-level interface
 
-SQL-интерфейс является всего лишь надстройкой над набором утилит, описанных ниже.
-Комбинируя эти утилиты, можно делать намного больше, чем позволяет SQL.
+SQL-interface only wrapper for utility kit described down below.
+By combining those utilities you can do much more than with SQL.
 
-#### Фильтрация и агрегация
+#### Filtering and aggregation
 
-Отфильтруем только события с типом `buy`
+Let's filter only events with type `buy`
 ```sh
 cat /tmp/test.json \
-	| jl-filter 'type == "buy"'
+    | jl-filter 'type == "buy"'
 ```
 ```json
 {"ts": 1416478467, "type": "buy", "price": 10}
 {"ts": 1416622653, "type": "buy", "price": 20}
 ```
 
-Добавим подсчёт суммы всех `price`
+Add sum calculation for all `price` fields
 ```sh
 cat /tmp/test.json \
-	| jl-filter 'type == "buy"'
-	| jl-sum price
+    | jl-filter 'type == "buy"'
+    | jl-sum price
 ```
 ```json
 {"value":30}
 ```
 
-Чтобы получить просто `30` можно добавить в конце вызов `jl-extract value` - эта команда извлекает строковое представление значения поля.
+To get just `30` you can add `jl-extract value` at the end - this command extract value of the field.
 
-#### Сортировка
+#### Sorting
 
-Отсортируем лог по полю `ts`
+Let sort log file by `ts` field
 ```sh
 cat /tmp/test.json \
-	| jl-sort ts
+    | jl-sort ts
 ```
 ```json
 {"ts": 1416466930, "type": "click"}
@@ -158,14 +159,14 @@ cat /tmp/test.json \
 {"ts": 1416699396, "type": "click"}
 ```
 
-Также поддерживаются стандартные аргументы утилиты `sort`: `-r`, `-n`, `-u`, `-m`, `-s`, `-T`, `-S`
+The standard arguments of `sort` utility is also supported: `-r`, `-n`, `-u`, `-m`, `-s`, `-T`, `-S`
 
-#### Модификация
+#### Modification
 
-Добавим в каждый объект поле `date`, содержащее дату события в UTC
+Let's add to each object field `date`, that contains event date in UTC format
 ```sh
 cat /tmp/test.json \
-	| jl-transform '{r.date = (new Date(r.ts * 1000)).toUTCString()}'
+    | jl-transform '{r.date = (new Date(r.ts * 1000)).toUTCString()}'
 ```
 ```json
 {"ts":1416595508,"type":"click","date":"Fri, 21 Nov 2014 18:45:08 GMT"}
@@ -180,111 +181,102 @@ cat /tmp/test.json \
 {"ts":1416682270,"type":"click","date":"Sat, 22 Nov 2014 18:51:10 GMT"}
 ```
 
-Внутренний конвейер
+Internal pipe
 -----
 
-При использовании стандартных системных конвейеров (pipes) для взаимодействия между несколькими `jl-`утилитами появляется много накладных расходов на сериалицацию/десериализацию в/из JSON т.к. каждая утилита в отдельности принимает JSON из stdin и отдаёт JSON в stdout.
+The system pipes are inefficient because of serialization/deserialization of JSON each time when working with multiple `jl-`utilities because each utility receives and returns JSON using stdin/stdout.
 
-Для решения этой проблемы все `jl-`утилиты поддерживают внутреннюю реализацию конвейеров, которые позволяют им взаимодействовать между собой в контексте одного процесса без затрат на парсинг. Делается это простой заменой `|`  на `\|` между `jl-`командами в командной строке. Например
+To solve this problem `jl-`utilities supports internal piping which allows to multiple utilities interact with each other in the context of a single process without spending resources for parsing. To use internal pipes replace `|`  to `\|` between `jl-`commands in the command line. For example:
 ```sh
 cat /tmp/test.json \
-	| jl-filter 'type == "buy"'
-	| jl-sum price
+    | jl-filter 'type == "buy"'
+    | jl-sum price
 ```
-можно заменить на
+you can change to:
 ```sh
 cat /tmp/test.json \
-	| jl-filter 'type == "buy"'
-	\| jl-sum price
+    | jl-filter 'type == "buy"'
+    \| jl-sum price
 ```
 
-Производительность
+Performance
 -----
 
-Потребление CPU всех утилит кроме `jl-sort` - `O(n)`, по памяти `O(1)`.
+CPU consumption of all utilities except for `jl-sort` is `O(n)`, by memory is `O(1)`.
 
-Сложность `jl-sort` целиком зависит от реализации системного `sort`, дополнительные расходы по CPU также `O(n)`, по памяти `O(1)`.
+The performance of `jl-sort` completely depends on system's `sort` realization, additional CPU consumptions also `O(n)`, and by memory `O(1)`.
 
-Использование встроенного механизма конвейеров сильно увеличивает
-производительность т.к. парсинг JSON очень затратная операция.
-Но есть обратная сторона: все операции в пределах конвейера выполняются в одном
-потоке, поэтому при очен длинных конвейерах стоит соблюдать баланс.
+By using internal pipes significantly increases performance because JSON parsing is very expensive operation.
+But in another hand, all operations in pipes is computing in a single thread, so with very long pipes you should keep the balance.
 
-Утилиты
+Utilities
 -----
 
 #### `jl-sql` - SQL
 
-Принимает один обязательный аргумент - SQL и имеет несколько опций:
+Requires single argument - SQL and has few options:
 
-- `-T DIR` - временный каталог, в котором будет происходить сортировка,
-если она не помещается в буфер сортировки в памяти. По умолчанию берётся `$TMPDIR`
-или `/tmp`. Будьте внимательны, когда сортируете большие объёмы, имея раздел `/tmp` на рамдиске - память может закончиться
-- `-S BUF` - размер буфера сортировки в памяти, задваётся в байтах. Если буфер переполняется, то
-используется ФС (см. опцию `-T`)
+- `-T DIR` - temporary directory which will be used for sorting if it didn't use RAM. `$TMPDIR` or `/tmp` by default. Pay attention when sorting big amount of data, by having `/tmp` on the RAM disk.
+- `-S BUF` - size of sorting buffer in bytes. On buffer overflow, filesystem will be used(see `-T` option)
 
 
-#### `jl-sort` - сортировка
+#### `jl-sort` - sorting
 
-Враппер над GNU Sort, позволяющий сортировать JSON. Сохраняет все плюсы обычного `sort`,
-такие как поддержка сортировки в ФС, merge-sort, стабильная сортировка, ограничение размера буфера сортировки.
+Wrapper for GNU Sort, allowing to sort JSON. Uses all advantages of `sort`, also, supports sorting in filesystem, merge-sort, stable sorting, limit buffer size.
 
-#### `jl-filter` - фильтрация
+#### `jl-filter` - filtering
 
-Аналог `grep`, но для JSON.
+Alternative to `grep`, but for JSON.
 
-#### `jl-reduce` - группировка по ключу и агрегация
+#### `jl-reduce` - aggregation and grouping by key
 
-Обобщённая утилита, которая умеет производит свёртку элементов в одно значение для каждой группы.
-Принимает 3 аргумента обязательных в виде JS-функций:
+General utility that produces welding elements into a single value for each group.
+Expects 3 JS-functions arguments:
 
-- `-i FUNC` - инициализатор аккумулятора: вызывается для каждой новой группы.
-Функция запускается в контексте группы.
-- `-u FUNC` - обновление аккумулятора: функция, вызываемая для каждого элемента группы.
-Функция запускается в контексте группы и принимает аргумент `r`, в котором текущий элемент потока
-- `-r FUNC` - получение значения аккумулятора: вызывается в конце группы для получения результата
-Функция запускается в контексте группы.
+- `-i FUNC` - accumulator initialization: gets called for each group. The function executes in a group context.
+- `-u FUNC` - accumulator update: the function that will be executed for each element of a group.
+The function executes in a group context and receives argument `r`, containing each element of a thread.
+- `-r FUNC` - received accumulator's value: will be executed at the end of group with the passed result. The function executes in a group context.
 
-и один необазятельный аргумент
+and one required argument
 
-- `-k KEYDEF` - ключ, который будет использован для группировки, может быть функций. Для правильной работы
-входной поток должен быть отсортирован по этому ключу в любом направлении
+- `-k KEYDEF` - key which will be used for grouping, could be a function. For correct execution thread's input should be sorted by this key in any direction.
 
-Для лучшего понимания, приведу пример простой реализации `jl-sum`, которая считают сумму поля `amount`
-для каждого юзера, который идентификируется полем `uid`
+Here is simple example of using `jl-sum` utility, which counts sum for `amount` field for each user that gets identified by `uid` field:
 
 ```sh
 jl-reduce -k uid -i '{this.sum = 0}' -u '{this.sum += r.amount}' -r '{return this.sum}'
 ```
 
-Для входного потока, содержащего
+For thread's input containing:
 ```json
 {"uid": 1, "amount": 10}
 {"uid": 1, "amount": 11}
 {"uid": 2, "amount": 12}
 {"uid": 3, "amount": 13}
 ```
-На выходе получим
+
+Output will be:
 ```json
 {"key":1,"value":21}
 {"key":2,"value":12}
 {"key":3,"value":13}
 ```
 
-Если не указывать `-k`, то свёртка будет проходить по всему потоку и на выходе получим одно значение
+If `-k` argument will be missing, convolution will go over whole thread and will return:
 ```json
 {"value":46}
 ```
 
-#### `jl-sum` - суммирование
+#### `jl-sum` - summation
 
-Предефайн для `jl-reduce`, который считает сумму параметра по группам
+Predefined `jl-reduce`, which counts sum of parameter in group
 
 #### `jl-count` - подсчёт количества
 
-Предефайн для `jl-reduce`, который считает количество элементов в группе
+Predefined `jl-reduce`, which counts amount of elements in group
 
-#### `jl-transform` - модификация
-#### `jl-extract` - извлечение значения поля
-#### `jl-from-csv` - конвертация CSV в JSON
-#### `jl-plainify` - конвертация сложного объекта в одноуровневый k-v
+#### `jl-transform` - modification
+#### `jl-extract` - field's value extraction
+#### `jl-from-csv` - CSV to JSON conversation
+#### `jl-plainify` - Flattens object to a single level deep k-v
