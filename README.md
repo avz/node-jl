@@ -3,7 +3,7 @@ node-jl
 
 ([Russian translation](README-RU.md))
 
-Utility kit for working with JSON files/streams divided by `\n.` symbol.
+Utility kit for working with JSON files/streams divided by `\n` symbol.
 JSON-representation of each record shouldn't contain line breaking symbol.
 
 Install
