@@ -1,6 +1,6 @@
 {
 	"name": "jl",
-	"version": "2.4.0",
+	"version": "2.4.1",
 	"description": "Command-line JSON manipulation library",
 	"keywords": [
 		"json",
@@ -31,7 +31,7 @@
 		"csv-parse": "latest",
 		"node-getopt": "latest",
 		"hll-native": "1",
-		"jl-pick": "1"
+		"jl-pick": "1.0.3"
 	},
 
 	"devDependencies": {
