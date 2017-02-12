@@ -1,6 +1,9 @@
 node-jl
 =====
 
+Package is deprecated. Use [`jl-sql`](https://github.com/avz/jl-sql) instead
+====
+
 ([Russian translation](README-RU.md))
 
 Utility kit for working with JSON files/streams divided by `\n` symbol.
